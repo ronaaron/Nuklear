@@ -4728,6 +4728,25 @@ struct nk_draw_command {
 #endif
 };
 
+
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+struct nk_affine_transform {
+	float a,b,c,d,e,f;
+};
+
+NK_API void nk_affine_translate(const struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_scale(const struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_shear(const struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_rotate(const struct nk_context *ctx, float d);
+NK_API void nk_affine_clear(const struct nk_context *ctx);
+
+NK_API struct nk_affine_transform nk_affine_get(const struct nk_context *ctx);
+NK_API void nk_affine_set(const struct nk_context *ctx, const struct nk_affine_transform *t);
+
+/* internal */
+void nk_apply_transform(const struct nk_affine_transform *transform, float *x, float *y);
+#endif
+
 struct nk_draw_list {
     struct nk_rect clip_rect;
     struct nk_vec2 circle_vtx[12];
@@ -4750,6 +4769,10 @@ struct nk_draw_list {
 
 #ifdef NK_INCLUDE_COMMAND_USERDATA
     nk_handle userdata;
+#endif
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	int   transform_active;
+	struct nk_affine_transform transform;
 #endif
 };
 
@@ -5566,6 +5589,7 @@ struct nk_pool {
     nk_size cap;
 };
 
+
 struct nk_context {
 /* public: can be accessed freely */
     struct nk_input input;
@@ -5576,6 +5600,7 @@ struct nk_context {
     enum nk_button_behavior button_behavior;
     struct nk_configuration_stacks stacks;
     float delta_time_seconds;
+
 
 /* private:
     should only be accessed if you
@@ -9232,6 +9257,15 @@ nk_draw_list_init(struct nk_draw_list *list)
         list->circle_vtx[i].x = (float)NK_COS(a);
         list->circle_vtx[i].y = (float)NK_SIN(a);
     }
+#ifdef NK_INCLUDE_COMMAND_USERDATA
+	transform_active = 0;
+	transform.a=0;
+	transform.b=0;
+	transform.c=0;
+	transform.d=0;
+	transform.e=0;
+	transform.f=0;
+#endif
 }
 NK_API void
 nk_draw_list_setup(struct nk_draw_list *canvas, const struct nk_convert_config *config,
@@ -10547,6 +10581,169 @@ nk__draw_next(const struct nk_draw_command *cmd,
 {
     return nk__draw_list_next(cmd, buffer, &ctx->draw_list);
 }
+
+
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+void 
+nk_apply_transform(const struct nk_affine_transform *t, float *x, float *y)
+{
+	NK_ASSERT(t);
+	NK_ASSERT(x);
+	NK_ASSERT(y);
+
+	/*
+	 * The transform is :
+	 *    a b c
+	 *    d e f
+	 *    0 0 1
+	 *
+	 * where the last row is omitted
+	 */
+	float x2 = (t->a * *x) + (t->b * *y) + t->c;
+	float y2 = (t->d * *x) + (t->e * *y) + t->f;
+	*x = x2;
+	*y = y2;
+}
+
+static void
+nk_compose_transform(struct nk_affine_transform *out, const struct nk_affine_transform *in)
+{
+	struct nk_affine_transform result;
+	/* 3X3 matrix multiplication, but we discard the bottom row */
+	result.a = (out->a * in->a) + (out->b * in->d);
+	result.b = (out->a * in->b) + (out->b * in->e);
+	result.c = (out->a * in->c) + (out->b * in->f) + out->c;
+	
+	result.d = (out->d * in->a) + (out->e * in->d);
+	result.e = (out->d * in->b) + (out->e * in->e);
+	result.f = (out->d * in->c) + (out->e * in->f) + out->f;
+
+	NK_MEMCPY(out, &result, sizeof(struct nk_affine_transform));
+}
+
+static void 
+nk_set_transform(struct nk_draw_list *d, const struct nk_affine_transform *t)
+{
+	if (d->transform_active)
+	{
+		nk_compose_transform(&d->transform, t);
+	}
+	else
+	{
+		NK_MEMCPY(&d->transform, &t, sizeof(struct nk_affine_transform));
+		d->transform_active=1;
+	}
+}
+
+NK_API void 
+nk_affine_translate(const struct nk_context *ctx, float x, float y)
+{
+	NK_ASSERT(ctx);
+	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
+
+	/*
+	 * New transform is:
+	 *   0 0 x
+	 *   0 0 y
+	 *   0 0 1
+	 */
+	struct nk_affine_transform t =
+	{
+		0,0,x,
+		0,0,y
+	};
+	nk_set_transform(d, &t);
+}
+
+NK_API void 
+nk_affine_scale(const struct nk_context *ctx, float x, float y)
+{
+	NK_ASSERT(ctx);
+	struct nk_draw_list *d = (struct nk_draw_list *)&ctx->draw_list;
+
+	/*
+	 * New transform is:
+	 *   x 0 0
+	 *   0 y 0
+	 *   0 0 1
+	 */
+	struct nk_affine_transform t =
+	{
+		x,0,0,
+		0,y,0
+	};
+	nk_set_transform(d, &t);
+}
+
+NK_API void 
+nk_affine_shear(const struct nk_context *ctx, float x, float y)
+{
+	NK_ASSERT(ctx); 
+	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
+
+	/*
+	 * New transform is:
+	 *   0 x 0
+	 *   y 0 0
+	 *   0 0 1
+	 */
+	struct nk_affine_transform t =
+	{
+		0,x,0,
+		y,0,0
+	};
+	nk_set_transform(d, &t);
+}
+
+NK_API void 
+nk_affine_rotate(const struct nk_context *ctx, float n)
+{
+	NK_ASSERT(ctx); 
+	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
+
+	/*
+	 * New transform is:
+	 *   cos(d) -sin(d) 0
+	 *   sin(d) cos(d) 0
+	 *   0 0 1
+	 */
+	float cos_n = NK_COS(n);
+	float sin_n = NK_SIN(n);
+
+	struct nk_affine_transform t =
+	{
+		cos_n, -sin_n, 0,
+		sin_n, cos_n, 0
+	};
+	nk_set_transform(d, &t);
+}
+
+NK_API void 
+nk_affine_clear(const struct nk_context *ctx)
+{
+	NK_ASSERT(ctx); 
+	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
+	d->transform_active=0;
+	NK_MEMSET(&d->transform,0,sizeof(struct nk_affine_transform));
+}
+
+NK_API struct 
+nk_affine_transform nk_affine_get(const struct nk_context *ctx)
+{
+	NK_ASSERT(ctx); 
+	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
+	return d->transform;
+}
+
+NK_API void 
+nk_affine_set(const struct nk_context *ctx, const struct nk_affine_transform *t)
+{
+	NK_ASSERT(ctx); 
+	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
+	NK_MEMCPY(&d->transform, t, sizeof(struct nk_affine_transform));
+	d->transform_active=0;
+}
+#endif
 #endif
 
 

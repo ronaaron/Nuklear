@@ -4509,6 +4509,25 @@ struct nk_draw_command {
 #endif
 };
 
+
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+struct nk_affine_transform {
+	float a,b,c,d,e,f;
+};
+
+NK_API void nk_affine_translate(const struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_scale(const struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_shear(const struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_rotate(const struct nk_context *ctx, float d);
+NK_API void nk_affine_clear(const struct nk_context *ctx);
+
+NK_API struct nk_affine_transform nk_affine_get(const struct nk_context *ctx);
+NK_API void nk_affine_set(const struct nk_context *ctx, const struct nk_affine_transform *t);
+
+/* internal */
+void nk_apply_transform(const struct nk_affine_transform *transform, float *x, float *y);
+#endif
+
 struct nk_draw_list {
     struct nk_rect clip_rect;
     struct nk_vec2 circle_vtx[12];
@@ -4531,6 +4550,10 @@ struct nk_draw_list {
 
 #ifdef NK_INCLUDE_COMMAND_USERDATA
     nk_handle userdata;
+#endif
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	int   transform_active;
+	struct nk_affine_transform transform;
 #endif
 };
 
@@ -5347,6 +5370,7 @@ struct nk_pool {
     nk_size cap;
 };
 
+
 struct nk_context {
 /* public: can be accessed freely */
     struct nk_input input;
@@ -5357,6 +5381,7 @@ struct nk_context {
     enum nk_button_behavior button_behavior;
     struct nk_configuration_stacks stacks;
     float delta_time_seconds;
+
 
 /* private:
     should only be accessed if you

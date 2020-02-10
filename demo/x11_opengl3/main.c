@@ -20,6 +20,8 @@
 #define NK_IMPLEMENTATION
 #define NK_XLIB_GL3_IMPLEMENTATION
 #define NK_XLIB_LOAD_OPENGL_EXTENSIONS
+
+#define NK_INCLUDE_AFFINE_TRANSFORM
 #include "../../nuklear.h"
 #include "nuklear_xlib_gl3.h"
 
@@ -41,6 +43,8 @@
 /*#define INCLUDE_CALCULATOR */
 /*#define INCLUDE_OVERVIEW */
 /*#define INCLUDE_NODE_EDITOR */
+
+  #define INCLUDE_OVERVIEW
 
 #ifdef INCLUDE_ALL
   #define INCLUDE_STYLE
