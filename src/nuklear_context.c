@@ -72,6 +72,15 @@ nk_init(struct nk_context *ctx, struct nk_allocator *alloc,
     nk_buffer_init(&ctx->memory, alloc, NK_DEFAULT_COMMAND_BUFFER_SIZE);
     nk_pool_init(&ctx->pool, alloc, NK_POOL_DEFAULT_CAPACITY);
     ctx->use_pool = nk_true;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	ctx->transform_active = 0;
+	ctx->transform.a=0;
+	ctx->transform.b=0;
+	ctx->transform.c=0;
+	ctx->transform.d=0;
+	ctx->transform.e=0;
+	ctx->transform.f=0;
+#endif
     return 1;
 }
 #ifdef NK_INCLUDE_COMMAND_USERDATA

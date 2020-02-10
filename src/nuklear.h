@@ -932,6 +932,11 @@ struct nk_draw_null_texture {
     nk_handle texture; /* texture handle to a texture with a white pixel */
     struct nk_vec2 uv; /* coordinates to a white pixel in the texture  */
 };
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+struct nk_affine_transform {
+	float a,b,c,d,e,f;
+};
+#endif
 struct nk_convert_config {
     float global_alpha; /* global alpha value */
     enum nk_anti_aliasing line_AA; /* line anti-aliasing flag can be turned off if you are tight on memory */
@@ -4346,6 +4351,10 @@ struct nk_command_buffer {
     int use_clipping;
     nk_handle userdata;
     nk_size begin, end, last;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	int *transform_active;
+	struct nk_affine_transform *transform;
+#endif
 };
 
 /* shape outlines */
@@ -4511,18 +4520,14 @@ struct nk_draw_command {
 
 
 #ifdef NK_INCLUDE_AFFINE_TRANSFORM
-struct nk_affine_transform {
-	float a,b,c,d,e,f;
-};
+NK_API void nk_affine_translate(struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_scale(struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_shear(struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_rotate(struct nk_context *ctx, float d);
+NK_API void nk_affine_clear(struct nk_context *ctx);
 
-NK_API void nk_affine_translate(const struct nk_context *ctx, float x, float y);
-NK_API void nk_affine_scale(const struct nk_context *ctx, float x, float y);
-NK_API void nk_affine_shear(const struct nk_context *ctx, float x, float y);
-NK_API void nk_affine_rotate(const struct nk_context *ctx, float d);
-NK_API void nk_affine_clear(const struct nk_context *ctx);
-
-NK_API struct nk_affine_transform nk_affine_get(const struct nk_context *ctx);
-NK_API void nk_affine_set(const struct nk_context *ctx, const struct nk_affine_transform *t);
+NK_API struct nk_affine_transform nk_affine_get(struct nk_context *ctx);
+NK_API void nk_affine_set(struct nk_context *ctx, const struct nk_affine_transform *t);
 
 /* internal */
 void nk_apply_transform(const struct nk_affine_transform *transform, float *x, float *y);
@@ -4550,10 +4555,6 @@ struct nk_draw_list {
 
 #ifdef NK_INCLUDE_COMMAND_USERDATA
     nk_handle userdata;
-#endif
-#ifdef NK_INCLUDE_AFFINE_TRANSFORM
-	int   transform_active;
-	struct nk_affine_transform transform;
 #endif
 };
 
@@ -5411,6 +5412,10 @@ struct nk_context {
     struct nk_page_element *freelist;
     unsigned int count;
     unsigned int seq;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	int   transform_active;
+	struct nk_affine_transform transform;
+#endif
 };
 
 /* ==============================================================

@@ -1151,6 +1151,11 @@ struct nk_draw_null_texture {
     nk_handle texture; /* texture handle to a texture with a white pixel */
     struct nk_vec2 uv; /* coordinates to a white pixel in the texture  */
 };
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+struct nk_affine_transform {
+	float a,b,c,d,e,f;
+};
+#endif
 struct nk_convert_config {
     float global_alpha; /* global alpha value */
     enum nk_anti_aliasing line_AA; /* line anti-aliasing flag can be turned off if you are tight on memory */
@@ -4565,6 +4570,10 @@ struct nk_command_buffer {
     int use_clipping;
     nk_handle userdata;
     nk_size begin, end, last;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	int *transform_active;
+	struct nk_affine_transform *transform;
+#endif
 };
 
 /* shape outlines */
@@ -4730,18 +4739,14 @@ struct nk_draw_command {
 
 
 #ifdef NK_INCLUDE_AFFINE_TRANSFORM
-struct nk_affine_transform {
-	float a,b,c,d,e,f;
-};
+NK_API void nk_affine_translate(struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_scale(struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_shear(struct nk_context *ctx, float x, float y);
+NK_API void nk_affine_rotate(struct nk_context *ctx, float d);
+NK_API void nk_affine_clear(struct nk_context *ctx);
 
-NK_API void nk_affine_translate(const struct nk_context *ctx, float x, float y);
-NK_API void nk_affine_scale(const struct nk_context *ctx, float x, float y);
-NK_API void nk_affine_shear(const struct nk_context *ctx, float x, float y);
-NK_API void nk_affine_rotate(const struct nk_context *ctx, float d);
-NK_API void nk_affine_clear(const struct nk_context *ctx);
-
-NK_API struct nk_affine_transform nk_affine_get(const struct nk_context *ctx);
-NK_API void nk_affine_set(const struct nk_context *ctx, const struct nk_affine_transform *t);
+NK_API struct nk_affine_transform nk_affine_get(struct nk_context *ctx);
+NK_API void nk_affine_set(struct nk_context *ctx, const struct nk_affine_transform *t);
 
 /* internal */
 void nk_apply_transform(const struct nk_affine_transform *transform, float *x, float *y);
@@ -4769,10 +4774,6 @@ struct nk_draw_list {
 
 #ifdef NK_INCLUDE_COMMAND_USERDATA
     nk_handle userdata;
-#endif
-#ifdef NK_INCLUDE_AFFINE_TRANSFORM
-	int   transform_active;
-	struct nk_affine_transform transform;
 #endif
 };
 
@@ -5630,6 +5631,10 @@ struct nk_context {
     struct nk_page_element *freelist;
     unsigned int count;
     unsigned int seq;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	int   transform_active;
+	struct nk_affine_transform transform;
+#endif
 };
 
 /* ==============================================================
@@ -8848,6 +8853,13 @@ nk_stroke_line(struct nk_command_buffer *b, float x0, float y0,
     struct nk_command_line *cmd;
     NK_ASSERT(b);
     if (!b || line_thickness <= 0) return;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	if (b->transform_active && *b->transform_active && b->transform)
+	{
+		nk_apply_transform(b->transform, &x0, &y0);
+		nk_apply_transform(b->transform, &x1, &y1);
+	}
+#endif
     cmd = (struct nk_command_line*)
         nk_command_buffer_push(b, NK_COMMAND_LINE, sizeof(*cmd));
     if (!cmd) return;
@@ -8887,6 +8899,18 @@ nk_stroke_rect(struct nk_command_buffer *b, struct nk_rect rect,
 {
     struct nk_command_rect *cmd;
     NK_ASSERT(b);
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	if (b->transform_active && *b->transform_active && b->transform)
+	{
+		float x2 = rect.x + rect.w;
+		float y2 = rect.y + rect.h;
+		nk_apply_transform(b->transform, &rect.x, &rect.y);
+		nk_apply_transform(b->transform, &x2, &y2);
+		rect.w = x2-rect.x;
+		rect.h = y2-rect.y;
+
+	}
+#endif
     if (!b || c.a == 0 || rect.w == 0 || rect.h == 0 || line_thickness <= 0) return;
     if (b->use_clipping) {
         const struct nk_rect *clip = &b->clip;
@@ -8910,6 +8934,18 @@ nk_fill_rect(struct nk_command_buffer *b, struct nk_rect rect,
 {
     struct nk_command_rect_filled *cmd;
     NK_ASSERT(b);
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	if (b->transform_active && *b->transform_active && b->transform)
+	{
+		float x2 = rect.x + rect.w;
+		float y2 = rect.y + rect.h;
+		nk_apply_transform(b->transform, &rect.x, &rect.y);
+		nk_apply_transform(b->transform, &x2, &y2);
+		rect.w = x2-rect.x;
+		rect.h = y2-rect.y;
+
+	}
+#endif
     if (!b || c.a == 0 || rect.w == 0 || rect.h == 0) return;
     if (b->use_clipping) {
         const struct nk_rect *clip = &b->clip;
@@ -8934,6 +8970,18 @@ nk_fill_rect_multi_color(struct nk_command_buffer *b, struct nk_rect rect,
 {
     struct nk_command_rect_multi_color *cmd;
     NK_ASSERT(b);
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	if (b->transform_active && *b->transform_active && b->transform)
+	{
+		float x2 = rect.x + rect.w;
+		float y2 = rect.y + rect.h;
+		nk_apply_transform(b->transform, &rect.x, &rect.y);
+		nk_apply_transform(b->transform, &x2, &y2);
+		rect.w = x2-rect.x;
+		rect.h = y2-rect.y;
+
+	}
+#endif
     if (!b || rect.w == 0 || rect.h == 0) return;
     if (b->use_clipping) {
         const struct nk_rect *clip = &b->clip;
@@ -8959,6 +9007,18 @@ nk_stroke_circle(struct nk_command_buffer *b, struct nk_rect r,
 {
     struct nk_command_circle *cmd;
     if (!b || r.w == 0 || r.h == 0 || line_thickness <= 0) return;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	if (b->transform_active && *b->transform_active && b->transform)
+	{
+		float x2 = r.x + r.w;
+		float y2 = r.y + r.h;
+		nk_apply_transform(b->transform, &r.x, &r.y);
+		nk_apply_transform(b->transform, &x2, &y2);
+		r.w = x2-r.x;
+		r.h = y2-r.y;
+
+	}
+#endif
     if (b->use_clipping) {
         const struct nk_rect *clip = &b->clip;
         if (!NK_INTERSECT(r.x, r.y, r.w, r.h, clip->x, clip->y, clip->w, clip->h))
@@ -8981,6 +9041,18 @@ nk_fill_circle(struct nk_command_buffer *b, struct nk_rect r, struct nk_color c)
     struct nk_command_circle_filled *cmd;
     NK_ASSERT(b);
     if (!b || c.a == 0 || r.w == 0 || r.h == 0) return;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	if (b->transform_active && *b->transform_active && b->transform)
+	{
+		float x2 = r.x + r.w;
+		float y2 = r.y + r.h;
+		nk_apply_transform(b->transform, &r.x, &r.y);
+		nk_apply_transform(b->transform, &x2, &y2);
+		r.w = x2-r.x;
+		r.h = y2-r.y;
+
+	}
+#endif
     if (b->use_clipping) {
         const struct nk_rect *clip = &b->clip;
         if (!NK_INTERSECT(r.x, r.y, r.w, r.h, clip->x, clip->y, clip->w, clip->h))
@@ -9002,6 +9074,12 @@ nk_stroke_arc(struct nk_command_buffer *b, float cx, float cy, float radius,
 {
     struct nk_command_arc *cmd;
     if (!b || c.a == 0 || line_thickness <= 0) return;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	if (b->transform_active && *b->transform_active && b->transform)
+	{
+		nk_apply_transform(b->transform, &cx, &cy);
+	}
+#endif
     cmd = (struct nk_command_arc*)
         nk_command_buffer_push(b, NK_COMMAND_ARC, sizeof(*cmd));
     if (!cmd) return;
@@ -9020,6 +9098,12 @@ nk_fill_arc(struct nk_command_buffer *b, float cx, float cy, float radius,
     struct nk_command_arc_filled *cmd;
     NK_ASSERT(b);
     if (!b || c.a == 0) return;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	if (b->transform_active && *b->transform_active && b->transform)
+	{
+		nk_apply_transform(b->transform, &cx, &cy);
+	}
+#endif
     cmd = (struct nk_command_arc_filled*)
         nk_command_buffer_push(b, NK_COMMAND_ARC_FILLED, sizeof(*cmd));
     if (!cmd) return;
@@ -9037,6 +9121,14 @@ nk_stroke_triangle(struct nk_command_buffer *b, float x0, float y0, float x1,
     struct nk_command_triangle *cmd;
     NK_ASSERT(b);
     if (!b || c.a == 0 || line_thickness <= 0) return;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	if (b->transform_active && *b->transform_active && b->transform)
+	{
+		nk_apply_transform(b->transform, &x0, &y0);
+		nk_apply_transform(b->transform, &x1, &y1);
+		nk_apply_transform(b->transform, &x2, &y2);
+	}
+#endif
     if (b->use_clipping) {
         const struct nk_rect *clip = &b->clip;
         if (!NK_INBOX(x0, y0, clip->x, clip->y, clip->w, clip->h) &&
@@ -9065,6 +9157,14 @@ nk_fill_triangle(struct nk_command_buffer *b, float x0, float y0, float x1,
     NK_ASSERT(b);
     if (!b || c.a == 0) return;
     if (!b) return;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	if (b->transform_active && *b->transform_active && b->transform)
+	{
+		nk_apply_transform(b->transform, &x0, &y0);
+		nk_apply_transform(b->transform, &x1, &y1);
+		nk_apply_transform(b->transform, &x2, &y2);
+	}
+#endif
     if (b->use_clipping) {
         const struct nk_rect *clip = &b->clip;
         if (!NK_INBOX(x0, y0, clip->x, clip->y, clip->w, clip->h) &&
@@ -9234,6 +9334,162 @@ nk_draw_text(struct nk_command_buffer *b, struct nk_rect r,
     NK_MEMCPY(cmd->string, string, (nk_size)length);
     cmd->string[length] = '\0';
 }
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+void 
+nk_apply_transform(const struct nk_affine_transform *t, float *x, float *y)
+{
+	NK_ASSERT(t);
+	NK_ASSERT(x);
+	NK_ASSERT(y);
+
+	/*
+	 * The transform is :
+	 *    a b c
+	 *    d e f
+	 *    0 0 1
+	 *
+	 * where the last row is omitted
+	 */
+	float x1 = *x;
+	float y1 = *y;
+	float x2 = (t->a * x1) + (t->b * y1) + t->c;
+	float y2 = (t->d * x1) + (t->e * y1) + t->f;
+	*x = x2;
+	*y = y2;
+}
+
+static void
+nk_compose_transform(struct nk_affine_transform *out, const struct nk_affine_transform *in)
+{
+	struct nk_affine_transform result;
+	/* 3X3 matrix multiplication, but we discard the bottom row */
+	result.a = (out->a * in->a) + (out->b * in->d);
+	result.b = (out->a * in->b) + (out->b * in->e);
+	result.c = (out->a * in->c) + (out->b * in->f) + out->c;
+	
+	result.d = (out->d * in->a) + (out->e * in->d);
+	result.e = (out->d * in->b) + (out->e * in->e);
+	result.f = (out->d * in->c) + (out->e * in->f) + out->f;
+
+	NK_MEMCPY(out, &result, sizeof(struct nk_affine_transform));
+}
+
+static void 
+nk_set_transform(struct nk_context *ctx, const struct nk_affine_transform *t)
+{
+	if (ctx->transform_active)
+	{
+		nk_compose_transform(&ctx->transform, t);
+	}
+	else
+	{
+		NK_MEMCPY(&ctx->transform, t, sizeof(struct nk_affine_transform));
+		ctx->transform_active=1;
+	}
+}
+
+NK_API void 
+nk_affine_translate(struct nk_context *ctx, float x, float y)
+{
+	NK_ASSERT(ctx);
+
+	/*
+	 * New transform is:
+	 *   0 0 x
+	 *   0 0 y
+	 *   0 0 1
+	 */
+	struct nk_affine_transform t =
+	{
+		1,0,x,
+		0,1,y
+	};
+	nk_set_transform(ctx, &t);
+}
+
+NK_API void 
+nk_affine_scale(struct nk_context *ctx, float x, float y)
+{
+	NK_ASSERT(ctx);
+
+	/*
+	 * New transform is:
+	 *   x 0 0
+	 *   0 y 0
+	 *   0 0 1
+	 */
+	struct nk_affine_transform t =
+	{
+		x,0,0,
+		0,y,0
+	};
+	nk_set_transform(ctx, &t);
+}
+
+NK_API void 
+nk_affine_shear(struct nk_context *ctx, float x, float y)
+{
+	NK_ASSERT(ctx); 
+
+	/*
+	 * New transform is:
+	 *   1 x 0
+	 *   y 1 0
+	 *   0 0 1
+	 */
+	struct nk_affine_transform t =
+	{
+		1,x,0,
+		y,1,0
+	};
+	nk_set_transform(ctx, &t);
+}
+
+NK_API void 
+nk_affine_rotate(struct nk_context *ctx, float n)
+{
+	NK_ASSERT(ctx); 
+
+	/*
+	 * New transform is:
+	 *   cos(d) -sin(d) 0
+	 *   sin(d) cos(d) 0
+	 *   0 0 1
+	 */
+	float cos_n = NK_COS(n);
+	float sin_n = NK_SIN(n);
+
+	struct nk_affine_transform t =
+	{
+		cos_n, -sin_n, 0,
+		sin_n, cos_n, 0
+	};
+	nk_set_transform(ctx, &t);
+}
+
+NK_API void 
+nk_affine_clear(struct nk_context *ctx)
+{
+	NK_ASSERT(ctx); 
+	NK_MEMSET(&ctx->transform,0,sizeof(struct nk_affine_transform));
+	ctx->transform_active=0;
+}
+
+NK_API struct 
+nk_affine_transform nk_affine_get(struct nk_context *ctx)
+{
+	NK_ASSERT(ctx); 
+	return ctx->transform;
+}
+
+NK_API void 
+nk_affine_set(struct nk_context *ctx, const struct nk_affine_transform *t)
+{
+	NK_ASSERT(ctx); 
+	NK_MEMCPY(&ctx->transform, t, sizeof(struct nk_affine_transform));
+	ctx->transform_active=0;
+}
+#endif
 
 
 
@@ -9257,15 +9513,6 @@ nk_draw_list_init(struct nk_draw_list *list)
         list->circle_vtx[i].x = (float)NK_COS(a);
         list->circle_vtx[i].y = (float)NK_SIN(a);
     }
-#ifdef NK_INCLUDE_COMMAND_USERDATA
-	transform_active = 0;
-	transform.a=0;
-	transform.b=0;
-	transform.c=0;
-	transform.d=0;
-	transform.e=0;
-	transform.f=0;
-#endif
 }
 NK_API void
 nk_draw_list_setup(struct nk_draw_list *canvas, const struct nk_convert_config *config,
@@ -9282,6 +9529,7 @@ nk_draw_list_setup(struct nk_draw_list *canvas, const struct nk_convert_config *
 
     canvas->buffer = cmds;
     canvas->config = *config;
+
     canvas->elements = elements;
     canvas->vertices = vertices;
     canvas->line_AA = line_aa;
@@ -10583,167 +10831,6 @@ nk__draw_next(const struct nk_draw_command *cmd,
 }
 
 
-#ifdef NK_INCLUDE_AFFINE_TRANSFORM
-void 
-nk_apply_transform(const struct nk_affine_transform *t, float *x, float *y)
-{
-	NK_ASSERT(t);
-	NK_ASSERT(x);
-	NK_ASSERT(y);
-
-	/*
-	 * The transform is :
-	 *    a b c
-	 *    d e f
-	 *    0 0 1
-	 *
-	 * where the last row is omitted
-	 */
-	float x2 = (t->a * *x) + (t->b * *y) + t->c;
-	float y2 = (t->d * *x) + (t->e * *y) + t->f;
-	*x = x2;
-	*y = y2;
-}
-
-static void
-nk_compose_transform(struct nk_affine_transform *out, const struct nk_affine_transform *in)
-{
-	struct nk_affine_transform result;
-	/* 3X3 matrix multiplication, but we discard the bottom row */
-	result.a = (out->a * in->a) + (out->b * in->d);
-	result.b = (out->a * in->b) + (out->b * in->e);
-	result.c = (out->a * in->c) + (out->b * in->f) + out->c;
-	
-	result.d = (out->d * in->a) + (out->e * in->d);
-	result.e = (out->d * in->b) + (out->e * in->e);
-	result.f = (out->d * in->c) + (out->e * in->f) + out->f;
-
-	NK_MEMCPY(out, &result, sizeof(struct nk_affine_transform));
-}
-
-static void 
-nk_set_transform(struct nk_draw_list *d, const struct nk_affine_transform *t)
-{
-	if (d->transform_active)
-	{
-		nk_compose_transform(&d->transform, t);
-	}
-	else
-	{
-		NK_MEMCPY(&d->transform, &t, sizeof(struct nk_affine_transform));
-		d->transform_active=1;
-	}
-}
-
-NK_API void 
-nk_affine_translate(const struct nk_context *ctx, float x, float y)
-{
-	NK_ASSERT(ctx);
-	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
-
-	/*
-	 * New transform is:
-	 *   0 0 x
-	 *   0 0 y
-	 *   0 0 1
-	 */
-	struct nk_affine_transform t =
-	{
-		0,0,x,
-		0,0,y
-	};
-	nk_set_transform(d, &t);
-}
-
-NK_API void 
-nk_affine_scale(const struct nk_context *ctx, float x, float y)
-{
-	NK_ASSERT(ctx);
-	struct nk_draw_list *d = (struct nk_draw_list *)&ctx->draw_list;
-
-	/*
-	 * New transform is:
-	 *   x 0 0
-	 *   0 y 0
-	 *   0 0 1
-	 */
-	struct nk_affine_transform t =
-	{
-		x,0,0,
-		0,y,0
-	};
-	nk_set_transform(d, &t);
-}
-
-NK_API void 
-nk_affine_shear(const struct nk_context *ctx, float x, float y)
-{
-	NK_ASSERT(ctx); 
-	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
-
-	/*
-	 * New transform is:
-	 *   0 x 0
-	 *   y 0 0
-	 *   0 0 1
-	 */
-	struct nk_affine_transform t =
-	{
-		0,x,0,
-		y,0,0
-	};
-	nk_set_transform(d, &t);
-}
-
-NK_API void 
-nk_affine_rotate(const struct nk_context *ctx, float n)
-{
-	NK_ASSERT(ctx); 
-	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
-
-	/*
-	 * New transform is:
-	 *   cos(d) -sin(d) 0
-	 *   sin(d) cos(d) 0
-	 *   0 0 1
-	 */
-	float cos_n = NK_COS(n);
-	float sin_n = NK_SIN(n);
-
-	struct nk_affine_transform t =
-	{
-		cos_n, -sin_n, 0,
-		sin_n, cos_n, 0
-	};
-	nk_set_transform(d, &t);
-}
-
-NK_API void 
-nk_affine_clear(const struct nk_context *ctx)
-{
-	NK_ASSERT(ctx); 
-	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
-	d->transform_active=0;
-	NK_MEMSET(&d->transform,0,sizeof(struct nk_affine_transform));
-}
-
-NK_API struct 
-nk_affine_transform nk_affine_get(const struct nk_context *ctx)
-{
-	NK_ASSERT(ctx); 
-	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
-	return d->transform;
-}
-
-NK_API void 
-nk_affine_set(const struct nk_context *ctx, const struct nk_affine_transform *t)
-{
-	NK_ASSERT(ctx); 
-	struct nk_draw_list *d =(struct nk_draw_list *) &ctx->draw_list;
-	NK_MEMCPY(&d->transform, t, sizeof(struct nk_affine_transform));
-	d->transform_active=0;
-}
-#endif
 #endif
 
 
@@ -15229,6 +15316,15 @@ nk_init(struct nk_context *ctx, struct nk_allocator *alloc,
     nk_buffer_init(&ctx->memory, alloc, NK_DEFAULT_COMMAND_BUFFER_SIZE);
     nk_pool_init(&ctx->pool, alloc, NK_POOL_DEFAULT_CAPACITY);
     ctx->use_pool = nk_true;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	ctx->transform_active = 0;
+	ctx->transform.a=0;
+	ctx->transform.b=0;
+	ctx->transform.c=0;
+	ctx->transform.d=0;
+	ctx->transform.e=0;
+	ctx->transform.f=0;
+#endif
     return 1;
 }
 #ifdef NK_INCLUDE_COMMAND_USERDATA
@@ -16718,7 +16814,12 @@ nk_window_get_canvas(struct nk_context *ctx)
     NK_ASSERT(ctx->current);
     NK_ASSERT(ctx->current->layout);
     if (!ctx || !ctx->current) return 0;
-    return &ctx->current->buffer;
+	struct nk_command_buffer *b = &ctx->current->buffer;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	b->transform_active = &ctx->transform_active;
+	b->transform =  &ctx->transform  ;
+#endif
+	return b;
 }
 NK_API struct nk_panel*
 nk_window_get_panel(struct nk_context *ctx)

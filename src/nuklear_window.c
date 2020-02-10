@@ -393,7 +393,12 @@ nk_window_get_canvas(struct nk_context *ctx)
     NK_ASSERT(ctx->current);
     NK_ASSERT(ctx->current->layout);
     if (!ctx || !ctx->current) return 0;
-    return &ctx->current->buffer;
+	struct nk_command_buffer *b = &ctx->current->buffer;
+#ifdef NK_INCLUDE_AFFINE_TRANSFORM
+	b->transform_active = &ctx->transform_active;
+	b->transform =  &ctx->transform  ;
+#endif
+	return b;
 }
 NK_API struct nk_panel*
 nk_window_get_panel(struct nk_context *ctx)

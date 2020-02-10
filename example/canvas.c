@@ -18,6 +18,7 @@
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_AFFINE_TRANSFORM
 #define NK_INCLUDE_FONT_BAKING
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_IMPLEMENTATION
@@ -452,11 +453,14 @@ int main(int argc, char *argv[])
         canvas_begin(&ctx, &canvas, 0, 0, 0, width, height, nk_rgb(250,250,250));
         {
             nk_fill_rect(canvas.painter, nk_rect(15,15,210,210), 5, nk_rgb(247, 230, 154));
+
             nk_fill_rect(canvas.painter, nk_rect(20,20,200,200), 5, nk_rgb(188, 174, 118));
             nk_draw_text(canvas.painter, nk_rect(30, 30, 150, 20), "Text to draw", 12, &font->handle, nk_rgb(188,174,118), nk_rgb(0,0,0));
             nk_fill_rect(canvas.painter, nk_rect(250,20,100,100), 0, nk_rgb(0,0,255));
             nk_fill_circle(canvas.painter, nk_rect(20,250,100,100), nk_rgb(255,0,0));
+			nk_affine_rotate(&ctx,0.4);
             nk_fill_triangle(canvas.painter, 250, 250, 350, 250, 300, 350, nk_rgb(0,255,0));
+			nk_affine_clear(&ctx);
             nk_fill_arc(canvas.painter, 300, 180, 50, 0, 3.141592654f * 3.0f / 4.0f, nk_rgb(255,255,0));
 
             {float points[12];
