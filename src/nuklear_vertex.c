@@ -1158,7 +1158,9 @@ nk_draw_list_add_text(struct nk_draw_list *list, const struct nk_user_font *font
     if (!NK_INTERSECT(rect.x, rect.y, rect.w, rect.h,
         list->clip_rect.x, list->clip_rect.y, list->clip_rect.w, list->clip_rect.h)) return;
 
-    nk_draw_list_push_image(list, font->texture);
+	/* invalid texture */
+	int font_texture_id = 0;
+
     x = rect.x;
     glyph_len = nk_utf_decode(text, &unicode, len);
     if (!glyph_len) return;
@@ -1174,6 +1176,16 @@ nk_draw_list_add_text(struct nk_draw_list *list, const struct nk_user_font *font
         next_glyph_len = nk_utf_decode(text + text_len + glyph_len, &next, (int)len - text_len);
         font->query(font->userdata, font_height, &g, unicode,
                     (next == NK_UTF_INVALID) ? '\0' : next);
+
+		/* if the font texture has changed, push the new one */
+		if (font->texture.id != font_texture_id)
+		{
+			/* invalid texture id? */
+			if ((font_texture_id = font->texture.id) == 0) break;
+
+			/* otherwise, push it */
+    		nk_draw_list_push_image(list, font->texture);
+		}
 
         /* calculate and draw glyph drawing rectangle and image */
         gx = x + g.offset.x;
