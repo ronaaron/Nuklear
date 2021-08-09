@@ -1272,7 +1272,7 @@ enum nk_panel_flags {
 /// Returns `true(1)` if the window can be filled up with widgets from this point
 /// until `nk_end` or `false(0)` otherwise for example if minimized
 */
-NK_API nk_bool nk_begin(struct nk_context *ctx, const char *title, struct nk_rect bounds, nk_flags flags);
+NK_API nk_bool nk_begin(struct nk_context *ctx, nk_hash id, struct nk_rect bounds, nk_flags flags);
 /*/// #### nk_begin_titled
 /// Extended window start with separated title and identifier to allow multiple
 /// windows with same title but not name
@@ -1292,7 +1292,7 @@ NK_API nk_bool nk_begin(struct nk_context *ctx, const char *title, struct nk_rec
 /// Returns `true(1)` if the window can be filled up with widgets from this point
 /// until `nk_end` or `false(0)` otherwise for example if minimized
 */
-NK_API nk_bool nk_begin_titled(struct nk_context *ctx, const char *name, const char *title, struct nk_rect bounds, nk_flags flags);
+NK_API nk_bool nk_begin_titled(struct nk_context *ctx, nk_hash id, const char *title, struct nk_rect bounds, nk_flags flags);
 /*/// #### nk_end
 /// Needs to be called at the end of the window building process to process scaling, scrollbars and general cleanup.
 /// All widget calls after this functions will result in asserts or no state changes
@@ -1321,7 +1321,7 @@ NK_API void nk_end(struct nk_context *ctx);
 /// Returns a `nk_window` struct pointing to the identified window or NULL if
 /// no window with the given name was found
 */
-NK_API struct nk_window *nk_window_find(struct nk_context *ctx, const char *name);
+NK_API struct nk_window *nk_window_find(struct nk_context *ctx, nk_hash id);
 /*/// #### nk_window_get_bounds
 /// Returns a rectangle with screen position and size of the currently processed window
 ///
@@ -1574,7 +1574,7 @@ NK_API nk_bool nk_window_is_hovered(struct nk_context*);
 /// Returns `true(1)` if current window is minimized and `false(0)` if window not
 /// found or is not minimized
 */
-NK_API nk_bool nk_window_is_collapsed(struct nk_context *ctx, const char *name);
+NK_API nk_bool nk_window_is_collapsed(struct nk_context *ctx, nk_hash id);
 /*/// #### nk_window_is_closed
 /// Returns if the window with given name was closed by calling `nk_close`
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -1588,7 +1588,7 @@ NK_API nk_bool nk_window_is_collapsed(struct nk_context *ctx, const char *name);
 ///
 /// Returns `true(1)` if current window was closed or `false(0)` window not found or not closed
 */
-NK_API nk_bool nk_window_is_closed(struct nk_context*, const char*);
+NK_API nk_bool nk_window_is_closed(struct nk_context*, nk_hash id);
 /*/// #### nk_window_is_hidden
 /// Returns if the window with given name is hidden
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -1602,7 +1602,7 @@ NK_API nk_bool nk_window_is_closed(struct nk_context*, const char*);
 ///
 /// Returns `true(1)` if current window is hidden or `false(0)` window not found or visible
 */
-NK_API nk_bool nk_window_is_hidden(struct nk_context*, const char*);
+NK_API nk_bool nk_window_is_hidden(struct nk_context*, nk_hash id);
 /*/// #### nk_window_is_active
 /// Same as nk_window_has_focus for some reason
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -1616,7 +1616,7 @@ NK_API nk_bool nk_window_is_hidden(struct nk_context*, const char*);
 ///
 /// Returns `true(1)` if current window is active or `false(0)` window not found or not active
 */
-NK_API nk_bool nk_window_is_active(struct nk_context*, const char*);
+NK_API nk_bool nk_window_is_active(struct nk_context*, nk_hash id);
 /*/// #### nk_window_is_any_hovered
 /// Returns if the any window is being hovered
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -1657,7 +1657,7 @@ NK_API nk_bool nk_item_is_any_active(struct nk_context*);
 /// __name__    | Identifier of the window to modify both position and size
 /// __bounds__  | Must point to a `nk_rect` struct with the new position and size
 */
-NK_API void nk_window_set_bounds(struct nk_context*, const char *name, struct nk_rect bounds);
+NK_API void nk_window_set_bounds(struct nk_context*, nk_hash id, struct nk_rect bounds);
 /*/// #### nk_window_set_position
 /// Updates position of window with passed name
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -1670,7 +1670,7 @@ NK_API void nk_window_set_bounds(struct nk_context*, const char *name, struct nk
 /// __name__    | Identifier of the window to modify both position
 /// __pos__     | Must point to a `nk_vec2` struct with the new position
 */
-NK_API void nk_window_set_position(struct nk_context*, const char *name, struct nk_vec2 pos);
+NK_API void nk_window_set_position(struct nk_context*, nk_hash id, struct nk_vec2 pos);
 /*/// #### nk_window_set_size
 /// Updates size of window with passed in name
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -1683,7 +1683,7 @@ NK_API void nk_window_set_position(struct nk_context*, const char *name, struct 
 /// __name__    | Identifier of the window to modify both window size
 /// __size__    | Must point to a `nk_vec2` struct with new window size
 */
-NK_API void nk_window_set_size(struct nk_context*, const char *name, struct nk_vec2);
+NK_API void nk_window_set_size(struct nk_context*, nk_hash id, struct nk_vec2);
 /*/// #### nk_window_set_focus
 /// Sets the window with given name as active
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -1695,7 +1695,7 @@ NK_API void nk_window_set_size(struct nk_context*, const char *name, struct nk_v
 /// __ctx__     | Must point to an previously initialized `nk_context` struct
 /// __name__    | Identifier of the window to set focus on
 */
-NK_API void nk_window_set_focus(struct nk_context*, const char *name);
+NK_API void nk_window_set_focus(struct nk_context*, nk_hash id);
 /*/// #### nk_window_set_scroll
 /// Sets the scroll offset for the current window
 /// !!! WARNING
@@ -1723,7 +1723,7 @@ NK_API void nk_window_set_scroll(struct nk_context*, nk_uint offset_x, nk_uint o
 /// __ctx__     | Must point to an previously initialized `nk_context` struct
 /// __name__    | Identifier of the window to close
 */
-NK_API void nk_window_close(struct nk_context *ctx, const char *name);
+NK_API void nk_window_close(struct nk_context *ctx, nk_hash id);
 /*/// #### nk_window_collapse
 /// Updates collapse state of a window with given name
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -1736,7 +1736,7 @@ NK_API void nk_window_close(struct nk_context *ctx, const char *name);
 /// __name__    | Identifier of the window to close
 /// __state__   | value out of nk_collapse_states section
 */
-NK_API void nk_window_collapse(struct nk_context*, const char *name, enum nk_collapse_states state);
+NK_API void nk_window_collapse(struct nk_context*, nk_hash id, enum nk_collapse_states state);
 /*/// #### nk_window_collapse_if
 /// Updates collapse state of a window with given name if given condition is met
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -1750,7 +1750,7 @@ NK_API void nk_window_collapse(struct nk_context*, const char *name, enum nk_col
 /// __state__   | value out of nk_collapse_states section the window should be put into
 /// __cond__    | condition that has to be met to actually commit the collapse state change
 */
-NK_API void nk_window_collapse_if(struct nk_context*, const char *name, enum nk_collapse_states, int cond);
+NK_API void nk_window_collapse_if(struct nk_context*, nk_hash id, enum nk_collapse_states, int cond);
 /*/// #### nk_window_show
 /// updates visibility state of a window with given name
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -1763,7 +1763,7 @@ NK_API void nk_window_collapse_if(struct nk_context*, const char *name, enum nk_
 /// __name__    | Identifier of the window to either collapse or maximize
 /// __state__   | state with either visible or hidden to modify the window with
 */
-NK_API void nk_window_show(struct nk_context*, const char *name, enum nk_show_states);
+NK_API void nk_window_show(struct nk_context*, nk_hash id, enum nk_show_states);
 /*/// #### nk_window_show_if
 /// Updates visibility state of a window with given name if a given condition is met
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -1777,7 +1777,7 @@ NK_API void nk_window_show(struct nk_context*, const char *name, enum nk_show_st
 /// __state__   | state with either visible or hidden to modify the window with
 /// __cond__    | condition that has to be met to actually commit the visbility state change
 */
-NK_API void nk_window_show_if(struct nk_context*, const char *name, enum nk_show_states, int cond);
+NK_API void nk_window_show_if(struct nk_context*, nk_hash id, enum nk_show_states, int cond);
 /* =============================================================================
  *
  *                                  LAYOUT
@@ -5215,8 +5215,7 @@ struct nk_property_state {
 
 struct nk_window {
     unsigned int seq;
-    nk_hash name;
-    char name_string[NK_WINDOW_MAX_NAME];
+    nk_hash id;
     nk_flags flags;
 
     struct nk_rect bounds;
