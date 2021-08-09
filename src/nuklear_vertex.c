@@ -41,7 +41,6 @@ nk_draw_list_setup(struct nk_draw_list *canvas, const struct nk_convert_config *
     canvas->shape_AA = shape_aa;
     canvas->clip_rect = nk_null_rect;
 
-    canvas->cmd_offset = 0;
     canvas->element_count = 0;
     canvas->vertex_count = 0;
     canvas->cmd_offset = 0;
@@ -152,6 +151,7 @@ nk_draw_list_push_command(struct nk_draw_list *list, struct nk_rect clip,
     cmd->texture = texture;
 #ifdef NK_INCLUDE_COMMAND_USERDATA
     cmd->userdata = list->userdata;
+	cmd->special = list->special;
 #endif
 
     list->cmd_count++;
@@ -1119,6 +1119,25 @@ nk_draw_list_push_rect_uv(struct nk_draw_list *list, struct nk_vec2 a,
     vtx = nk_draw_vertex(vtx, &list->config, c, uvc, col);
     vtx = nk_draw_vertex(vtx, &list->config, d, uvd, col);
 }
+
+NK_API void 
+nk_draw_list_add_special(struct nk_draw_list* list, const struct nk_command_special *s)
+{
+	nk_draw_command *cmd = nk_draw_list_push_command(list, nk_null_rect, list->config.null.texture);
+	if (cmd)
+	{
+		if (!list->cmd_count) {
+        	nk_draw_list_push_command(list, nk_null_rect, list->config.null.texture);
+		} else {
+			struct nk_draw_command *prev = nk_draw_list_command_last(list);
+			nk_draw_list_push_command(list, prev->clip_rect, prev->texture);
+		}
+		cmd->special = s->command;
+		cmd->userdata.ptr = (void*) s;
+	}
+    nk_draw_list_path_clear(list);
+}
+
 NK_API void
 nk_draw_list_add_image(struct nk_draw_list *list, struct nk_image texture,
     struct nk_rect rect, struct nk_color color)
@@ -1332,6 +1351,10 @@ nk_convert(struct nk_context *ctx, struct nk_buffer *cmds,
         case NK_COMMAND_IMAGE: {
             const struct nk_command_image *i = (const struct nk_command_image*)cmd;
             nk_draw_list_add_image(&ctx->draw_list, i->img, nk_rect(i->x, i->y, i->w, i->h), i->col);
+        } break;
+        case NK_COMMAND_SPECIAL: {
+            const struct nk_command_special *s = (const struct nk_command_special *)cmd;
+            nk_draw_list_add_special(&ctx->draw_list, s);
         } break;
         case NK_COMMAND_CUSTOM: {
             const struct nk_command_custom *c = (const struct nk_command_custom*)cmd;

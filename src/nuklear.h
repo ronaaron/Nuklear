@@ -4187,6 +4187,7 @@ enum nk_command_type {
     NK_COMMAND_POLYLINE,
     NK_COMMAND_TEXT,
     NK_COMMAND_IMAGE,
+	NK_COMMAND_SPECIAL,
     NK_COMMAND_CUSTOM
 };
 
@@ -4197,6 +4198,13 @@ struct nk_command {
 #ifdef NK_INCLUDE_COMMAND_USERDATA
     nk_handle userdata;
 #endif
+};
+
+struct nk_command_special {
+    struct nk_command header;
+	float x,y,z,theta;
+	float a,b,c;
+	int command;
 };
 
 struct nk_command_scissor {
@@ -4522,6 +4530,7 @@ struct nk_draw_command {
     /* current texture to set */
 #ifdef NK_INCLUDE_COMMAND_USERDATA
     nk_handle userdata;
+	int special;
 #endif
 };
 
@@ -4547,6 +4556,7 @@ struct nk_draw_list {
 
 #ifdef NK_INCLUDE_COMMAND_USERDATA
     nk_handle userdata;
+	int special;
 #endif
 };
 
@@ -4590,6 +4600,7 @@ NK_API void nk_draw_list_add_image(struct nk_draw_list*, struct nk_image texture
 NK_API void nk_draw_list_add_text(struct nk_draw_list*, const struct nk_user_font*, struct nk_rect, const char *text, int len, float font_height, struct nk_color);
 #ifdef NK_INCLUDE_COMMAND_USERDATA
 NK_API void nk_draw_list_push_userdata(struct nk_draw_list*, nk_handle userdata);
+NK_API void nk_draw_list_add_special(struct nk_draw_list*, const struct nk_command_special *s);
 #endif
 
 #endif
