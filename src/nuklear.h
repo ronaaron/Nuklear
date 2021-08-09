@@ -2454,7 +2454,7 @@ NK_API struct nk_rect nk_layout_space_rect_to_local(struct nk_context*, struct n
 ///
 /// Returns `true(1)` if visible and fillable with widgets or `false(0)` otherwise
 */
-NK_API nk_bool nk_group_begin(struct nk_context*, const char *title, nk_flags);
+NK_API nk_bool nk_group_begin(struct nk_context*, nk_hash id, nk_flags);
 /*/// #### nk_group_begin_titled
 /// Starts a new widget group. Requires a previous layouting function to specify a pos/size.
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -2470,7 +2470,7 @@ NK_API nk_bool nk_group_begin(struct nk_context*, const char *title, nk_flags);
 ///
 /// Returns `true(1)` if visible and fillable with widgets or `false(0)` otherwise
 */
-NK_API nk_bool nk_group_begin_titled(struct nk_context*, const char *name, const char *title, nk_flags);
+NK_API nk_bool nk_group_begin_titled(struct nk_context*, nk_hash id, const char *title, nk_flags);
 /*/// #### nk_group_end
 /// Ends a widget group
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -2541,7 +2541,7 @@ NK_API void nk_group_scrolled_end(struct nk_context*);
 /// __x_offset__ | A pointer to the x offset output (or NULL to ignore)
 /// __y_offset__ | A pointer to the y offset output (or NULL to ignore)
 */
-NK_API void nk_group_get_scroll(struct nk_context*, const char *id, nk_uint *x_offset, nk_uint *y_offset);
+NK_API void nk_group_get_scroll(struct nk_context*, nk_hash id, nk_uint *x_offset, nk_uint *y_offset);
 /*/// #### nk_group_set_scroll
 /// Sets the scroll position of the given group.
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
@@ -2555,7 +2555,7 @@ NK_API void nk_group_get_scroll(struct nk_context*, const char *id, nk_uint *x_o
 /// __x_offset__ | The x offset to scroll to
 /// __y_offset__ | The y offset to scroll to
 */
-NK_API void nk_group_set_scroll(struct nk_context*, const char *id, nk_uint x_offset, nk_uint y_offset);
+NK_API void nk_group_set_scroll(struct nk_context*, nk_hash id, nk_uint x_offset, nk_uint y_offset);
 /* =============================================================================
  *
  *                                  TREE
