@@ -139,11 +139,6 @@ nk_combo_begin_text(struct nk_context *ctx, const char *selected, int len,
     return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
 NK_API nk_bool
-nk_combo_begin_label(struct nk_context *ctx, const char *selected, struct nk_vec2 size)
-{
-    return nk_combo_begin_text(ctx, selected, nk_strlen(selected), size);
-}
-NK_API nk_bool
 nk_combo_begin_color(struct nk_context *ctx, struct nk_color color, struct nk_vec2 size)
 {
     struct nk_window *win;
@@ -596,26 +591,9 @@ nk_combo_begin_image_text(struct nk_context *ctx, const char *selected, int len,
     return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
 NK_API nk_bool
-nk_combo_begin_symbol_label(struct nk_context *ctx,
-    const char *selected, enum nk_symbol_type type, struct nk_vec2 size)
-{
-    return nk_combo_begin_symbol_text(ctx, selected, nk_strlen(selected), type, size);
-}
-NK_API nk_bool
-nk_combo_begin_image_label(struct nk_context *ctx,
-    const char *selected, struct nk_image img, struct nk_vec2 size)
-{
-    return nk_combo_begin_image_text(ctx, selected, nk_strlen(selected), img, size);
-}
-NK_API nk_bool
 nk_combo_item_text(struct nk_context *ctx, const char *text, int len,nk_flags align)
 {
     return nk_contextual_item_text(ctx, text, len, align);
-}
-NK_API nk_bool
-nk_combo_item_label(struct nk_context *ctx, const char *label, nk_flags align)
-{
-    return nk_contextual_item_label(ctx, label, align);
 }
 NK_API nk_bool
 nk_combo_item_image_text(struct nk_context *ctx, struct nk_image img, const char *text,
@@ -624,22 +602,10 @@ nk_combo_item_image_text(struct nk_context *ctx, struct nk_image img, const char
     return nk_contextual_item_image_text(ctx, img, text, len, alignment);
 }
 NK_API nk_bool
-nk_combo_item_image_label(struct nk_context *ctx, struct nk_image img,
-    const char *text, nk_flags alignment)
-{
-    return nk_contextual_item_image_label(ctx, img, text, alignment);
-}
-NK_API nk_bool
 nk_combo_item_symbol_text(struct nk_context *ctx, enum nk_symbol_type sym,
     const char *text, int len, nk_flags alignment)
 {
     return nk_contextual_item_symbol_text(ctx, sym, text, len, alignment);
-}
-NK_API nk_bool
-nk_combo_item_symbol_label(struct nk_context *ctx, enum nk_symbol_type sym,
-    const char *label, nk_flags alignment)
-{
-    return nk_contextual_item_symbol_label(ctx, sym, label, alignment);
 }
 NK_API void nk_combo_end(struct nk_context *ctx)
 {
@@ -669,10 +635,10 @@ nk_combo(struct nk_context *ctx, const char **items, int count,
     max_height = count * item_height + count * (int)item_spacing.y;
     max_height += (int)item_spacing.y * 2 + (int)window_padding.y * 2;
     size.y = NK_MIN(size.y, (float)max_height);
-    if (nk_combo_begin_label(ctx, items[selected], size)) {
+    if (nk_combo_begin_text(ctx, items[selected], nk_strlen(items[selected]), size)) {
         nk_layout_row_dynamic(ctx, (float)item_height, 1);
         for (i = 0; i < count; ++i) {
-            if (nk_combo_item_label(ctx, items[i], NK_TEXT_LEFT))
+            if (nk_combo_item_text(ctx, items[i], nk_strlen(items[i]), NK_TEXT_LEFT))
                 selected = i;
         }
         nk_combo_end(ctx);
@@ -757,11 +723,11 @@ nk_combo_callback(struct nk_context *ctx, void(*item_getter)(void*, int, const c
     size.y = NK_MIN(size.y, (float)max_height);
 
     item_getter(userdata, selected, &item);
-    if (nk_combo_begin_label(ctx, item, size)) {
+    if (nk_combo_begin_text(ctx, item, nk_strlen(item), size)) {
         nk_layout_row_dynamic(ctx, (float)item_height, 1);
         for (i = 0; i < count; ++i) {
             item_getter(userdata, i, &item);
-            if (nk_combo_item_label(ctx, item, NK_TEXT_LEFT))
+            if (nk_combo_item_text(ctx, item, nk_strlen(item), NK_TEXT_LEFT))
                 selected = i;
         }
         nk_combo_end(ctx);

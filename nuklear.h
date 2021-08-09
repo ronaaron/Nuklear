@@ -3101,10 +3101,6 @@ NK_API void nk_text(struct nk_context*, const char*, int, nk_flags);
 NK_API void nk_text_colored(struct nk_context*, const char*, int, nk_flags, struct nk_color);
 NK_API void nk_text_wrap(struct nk_context*, const char*, int);
 NK_API void nk_text_wrap_colored(struct nk_context*, const char*, int, struct nk_color);
-NK_API void nk_label(struct nk_context*, const char*, nk_flags align);
-NK_API void nk_label_colored(struct nk_context*, const char*, nk_flags align, struct nk_color);
-NK_API void nk_label_wrap(struct nk_context*, const char*);
-NK_API void nk_label_colored_wrap(struct nk_context*, const char*, struct nk_color);
 NK_API void nk_image(struct nk_context*, struct nk_image);
 NK_API void nk_image_color(struct nk_context*, struct nk_image, struct nk_color);
 #ifdef NK_INCLUDE_STANDARD_VARARGS
@@ -3130,21 +3126,15 @@ NK_API void nk_value_color_hex(struct nk_context*, const char *prefix, struct nk
  *
  * ============================================================================= */
 NK_API nk_bool nk_button_text(struct nk_context*, const char *title, int len);
-NK_API nk_bool nk_button_label(struct nk_context*, const char *title);
 NK_API nk_bool nk_button_color(struct nk_context*, struct nk_color);
 NK_API nk_bool nk_button_symbol(struct nk_context*, enum nk_symbol_type);
 NK_API nk_bool nk_button_image(struct nk_context*, struct nk_image img);
-NK_API nk_bool nk_button_symbol_label(struct nk_context*, enum nk_symbol_type, const char*, nk_flags text_alignment);
 NK_API nk_bool nk_button_symbol_text(struct nk_context*, enum nk_symbol_type, const char*, int, nk_flags alignment);
-NK_API nk_bool nk_button_image_label(struct nk_context*, struct nk_image img, const char*, nk_flags text_alignment);
 NK_API nk_bool nk_button_image_text(struct nk_context*, struct nk_image img, const char*, int, nk_flags alignment);
 NK_API nk_bool nk_button_text_styled(struct nk_context*, const struct nk_style_button*, const char *title, int len);
-NK_API nk_bool nk_button_label_styled(struct nk_context*, const struct nk_style_button*, const char *title);
 NK_API nk_bool nk_button_symbol_styled(struct nk_context*, const struct nk_style_button*, enum nk_symbol_type);
 NK_API nk_bool nk_button_image_styled(struct nk_context*, const struct nk_style_button*, struct nk_image img);
 NK_API nk_bool nk_button_symbol_text_styled(struct nk_context*,const struct nk_style_button*, enum nk_symbol_type, const char*, int, nk_flags alignment);
-NK_API nk_bool nk_button_symbol_label_styled(struct nk_context *ctx, const struct nk_style_button *style, enum nk_symbol_type symbol, const char *title, nk_flags align);
-NK_API nk_bool nk_button_image_label_styled(struct nk_context*,const struct nk_style_button*, struct nk_image img, const char*, nk_flags text_alignment);
 NK_API nk_bool nk_button_image_text_styled(struct nk_context*,const struct nk_style_button*, struct nk_image img, const char*, int, nk_flags alignment);
 NK_API void nk_button_set_behavior(struct nk_context*, enum nk_button_behavior);
 NK_API nk_bool nk_button_push_behavior(struct nk_context*, enum nk_button_behavior);
@@ -3154,40 +3144,28 @@ NK_API nk_bool nk_button_pop_behavior(struct nk_context*);
  *                                  CHECKBOX
  *
  * ============================================================================= */
-NK_API nk_bool nk_check_label(struct nk_context*, const char*, nk_bool active);
 NK_API nk_bool nk_check_text(struct nk_context*, const char*, int, nk_bool active);
-NK_API unsigned nk_check_flags_label(struct nk_context*, const char*, unsigned int flags, unsigned int value);
 NK_API unsigned nk_check_flags_text(struct nk_context*, const char*, int, unsigned int flags, unsigned int value);
-NK_API nk_bool nk_checkbox_label(struct nk_context*, const char*, nk_bool *active);
 NK_API nk_bool nk_checkbox_text(struct nk_context*, const char*, int, nk_bool *active);
-NK_API nk_bool nk_checkbox_flags_label(struct nk_context*, const char*, unsigned int *flags, unsigned int value);
 NK_API nk_bool nk_checkbox_flags_text(struct nk_context*, const char*, int, unsigned int *flags, unsigned int value);
 /* =============================================================================
  *
  *                                  RADIO BUTTON
  *
  * ============================================================================= */
-NK_API nk_bool nk_radio_label(struct nk_context*, const char*, nk_bool *active);
 NK_API nk_bool nk_radio_text(struct nk_context*, const char*, int, nk_bool *active);
-NK_API nk_bool nk_option_label(struct nk_context*, const char*, nk_bool active);
 NK_API nk_bool nk_option_text(struct nk_context*, const char*, int, nk_bool active);
 /* =============================================================================
  *
  *                                  SELECTABLE
  *
  * ============================================================================= */
-NK_API nk_bool nk_selectable_label(struct nk_context*, const char*, nk_flags align, nk_bool *value);
 NK_API nk_bool nk_selectable_text(struct nk_context*, const char*, int, nk_flags align, nk_bool *value);
-NK_API nk_bool nk_selectable_image_label(struct nk_context*,struct nk_image,  const char*, nk_flags align, nk_bool *value);
 NK_API nk_bool nk_selectable_image_text(struct nk_context*,struct nk_image, const char*, int, nk_flags align, nk_bool *value);
-NK_API nk_bool nk_selectable_symbol_label(struct nk_context*,enum nk_symbol_type,  const char*, nk_flags align, nk_bool *value);
 NK_API nk_bool nk_selectable_symbol_text(struct nk_context*,enum nk_symbol_type, const char*, int, nk_flags align, nk_bool *value);
 
-NK_API nk_bool nk_select_label(struct nk_context*, const char*, nk_flags align, nk_bool value);
 NK_API nk_bool nk_select_text(struct nk_context*, const char*, int, nk_flags align, nk_bool value);
-NK_API nk_bool nk_select_image_label(struct nk_context*, struct nk_image,const char*, nk_flags align, nk_bool value);
 NK_API nk_bool nk_select_image_text(struct nk_context*, struct nk_image,const char*, int, nk_flags align, nk_bool value);
-NK_API nk_bool nk_select_symbol_label(struct nk_context*,enum nk_symbol_type,  const char*, nk_flags align, nk_bool value);
 NK_API nk_bool nk_select_symbol_text(struct nk_context*,enum nk_symbol_type, const char*, int, nk_flags align, nk_bool value);
 
 /* =============================================================================
@@ -3503,19 +3481,13 @@ NK_API void nk_combobox_callback(struct nk_context*, void(*item_getter)(void*, i
  *
  * ============================================================================= */
 NK_API nk_bool nk_combo_begin_text(struct nk_context*, const char *selected, int, struct nk_vec2 size);
-NK_API nk_bool nk_combo_begin_label(struct nk_context*, const char *selected, struct nk_vec2 size);
 NK_API nk_bool nk_combo_begin_color(struct nk_context*, struct nk_color color, struct nk_vec2 size);
 NK_API nk_bool nk_combo_begin_symbol(struct nk_context*,  enum nk_symbol_type,  struct nk_vec2 size);
-NK_API nk_bool nk_combo_begin_symbol_label(struct nk_context*, const char *selected, enum nk_symbol_type, struct nk_vec2 size);
 NK_API nk_bool nk_combo_begin_symbol_text(struct nk_context*, const char *selected, int, enum nk_symbol_type, struct nk_vec2 size);
 NK_API nk_bool nk_combo_begin_image(struct nk_context*, struct nk_image img,  struct nk_vec2 size);
-NK_API nk_bool nk_combo_begin_image_label(struct nk_context*, const char *selected, struct nk_image, struct nk_vec2 size);
 NK_API nk_bool nk_combo_begin_image_text(struct nk_context*,  const char *selected, int, struct nk_image, struct nk_vec2 size);
-NK_API nk_bool nk_combo_item_label(struct nk_context*, const char*, nk_flags alignment);
 NK_API nk_bool nk_combo_item_text(struct nk_context*, const char*,int, nk_flags alignment);
-NK_API nk_bool nk_combo_item_image_label(struct nk_context*, struct nk_image, const char*, nk_flags alignment);
 NK_API nk_bool nk_combo_item_image_text(struct nk_context*, struct nk_image, const char*, int,nk_flags alignment);
-NK_API nk_bool nk_combo_item_symbol_label(struct nk_context*, enum nk_symbol_type, const char*, nk_flags alignment);
 NK_API nk_bool nk_combo_item_symbol_text(struct nk_context*, enum nk_symbol_type, const char*, int, nk_flags alignment);
 NK_API void nk_combo_close(struct nk_context*);
 NK_API void nk_combo_end(struct nk_context*);
@@ -3526,10 +3498,7 @@ NK_API void nk_combo_end(struct nk_context*);
  * ============================================================================= */
 NK_API nk_bool nk_contextual_begin(struct nk_context*, nk_flags, struct nk_vec2, struct nk_rect trigger_bounds);
 NK_API nk_bool nk_contextual_item_text(struct nk_context*, const char*, int,nk_flags align);
-NK_API nk_bool nk_contextual_item_label(struct nk_context*, const char*, nk_flags align);
-NK_API nk_bool nk_contextual_item_image_label(struct nk_context*, struct nk_image, const char*, nk_flags alignment);
 NK_API nk_bool nk_contextual_item_image_text(struct nk_context*, struct nk_image, const char*, int len, nk_flags alignment);
-NK_API nk_bool nk_contextual_item_symbol_label(struct nk_context*, enum nk_symbol_type, const char*, nk_flags alignment);
 NK_API nk_bool nk_contextual_item_symbol_text(struct nk_context*, enum nk_symbol_type, const char*, int, nk_flags alignment);
 NK_API void nk_contextual_close(struct nk_context*);
 NK_API void nk_contextual_end(struct nk_context*);
@@ -3553,19 +3522,13 @@ NK_API void nk_tooltip_end(struct nk_context*);
 NK_API void nk_menubar_begin(struct nk_context*);
 NK_API void nk_menubar_end(struct nk_context*);
 NK_API nk_bool nk_menu_begin_text(struct nk_context*, const char* title, int title_len, nk_flags align, struct nk_vec2 size);
-NK_API nk_bool nk_menu_begin_label(struct nk_context*, const char*, nk_flags align, struct nk_vec2 size);
 NK_API nk_bool nk_menu_begin_image(struct nk_context*, const char*, struct nk_image, struct nk_vec2 size);
 NK_API nk_bool nk_menu_begin_image_text(struct nk_context*, const char*, int,nk_flags align,struct nk_image, struct nk_vec2 size);
-NK_API nk_bool nk_menu_begin_image_label(struct nk_context*, const char*, nk_flags align,struct nk_image, struct nk_vec2 size);
 NK_API nk_bool nk_menu_begin_symbol(struct nk_context*, const char*, enum nk_symbol_type, struct nk_vec2 size);
 NK_API nk_bool nk_menu_begin_symbol_text(struct nk_context*, const char*, int,nk_flags align,enum nk_symbol_type, struct nk_vec2 size);
-NK_API nk_bool nk_menu_begin_symbol_label(struct nk_context*, const char*, nk_flags align,enum nk_symbol_type, struct nk_vec2 size);
 NK_API nk_bool nk_menu_item_text(struct nk_context*, const char*, int,nk_flags align);
-NK_API nk_bool nk_menu_item_label(struct nk_context*, const char*, nk_flags alignment);
-NK_API nk_bool nk_menu_item_image_label(struct nk_context*, struct nk_image, const char*, nk_flags alignment);
 NK_API nk_bool nk_menu_item_image_text(struct nk_context*, struct nk_image, const char*, int len, nk_flags alignment);
 NK_API nk_bool nk_menu_item_symbol_text(struct nk_context*, enum nk_symbol_type, const char*, int, nk_flags alignment);
-NK_API nk_bool nk_menu_item_symbol_label(struct nk_context*, enum nk_symbol_type, const char*, nk_flags alignment);
 NK_API void nk_menu_close(struct nk_context*);
 NK_API void nk_menu_end(struct nk_context*);
 /* =============================================================================
@@ -20889,11 +20852,6 @@ nk_contextual_item_text(struct nk_context *ctx, const char *text, int len,
     return nk_false;
 }
 NK_API nk_bool
-nk_contextual_item_label(struct nk_context *ctx, const char *label, nk_flags align)
-{
-    return nk_contextual_item_text(ctx, label, nk_strlen(label), align);
-}
-NK_API nk_bool
 nk_contextual_item_image_text(struct nk_context *ctx, struct nk_image img,
     const char *text, int len, nk_flags align)
 {
@@ -20924,12 +20882,6 @@ nk_contextual_item_image_text(struct nk_context *ctx, struct nk_image img,
     return nk_false;
 }
 NK_API nk_bool
-nk_contextual_item_image_label(struct nk_context *ctx, struct nk_image img,
-    const char *label, nk_flags align)
-{
-    return nk_contextual_item_image_text(ctx, img, label, nk_strlen(label), align);
-}
-NK_API nk_bool
 nk_contextual_item_symbol_text(struct nk_context *ctx, enum nk_symbol_type symbol,
     const char *text, int len, nk_flags align)
 {
@@ -20958,12 +20910,6 @@ nk_contextual_item_symbol_text(struct nk_context *ctx, enum nk_symbol_type symbo
         return nk_true;
     }
     return nk_false;
-}
-NK_API nk_bool
-nk_contextual_item_symbol_label(struct nk_context *ctx, enum nk_symbol_type symbol,
-    const char *text, nk_flags align)
-{
-    return nk_contextual_item_symbol_text(ctx, symbol, text, nk_strlen(text), align);
 }
 NK_API void
 nk_contextual_close(struct nk_context *ctx)
@@ -21149,11 +21095,6 @@ nk_menu_begin_text(struct nk_context *ctx, const char *title, int len,
         is_clicked = nk_true;
     return nk_menu_begin(ctx, win, title, is_clicked, header, size);
 }
-NK_API nk_bool nk_menu_begin_label(struct nk_context *ctx,
-    const char *text, nk_flags align, struct nk_vec2 size)
-{
-    return nk_menu_begin_text(ctx, text, nk_strlen(text), align, size);
-}
 NK_API nk_bool
 nk_menu_begin_image(struct nk_context *ctx, const char *id, struct nk_image img,
     struct nk_vec2 size)
@@ -21231,12 +21172,6 @@ nk_menu_begin_image_text(struct nk_context *ctx, const char *title, int len,
     return nk_menu_begin(ctx, win, title, is_clicked, header, size);
 }
 NK_API nk_bool
-nk_menu_begin_image_label(struct nk_context *ctx,
-    const char *title, nk_flags align, struct nk_image img, struct nk_vec2 size)
-{
-    return nk_menu_begin_image_text(ctx, title, nk_strlen(title), align, img, size);
-}
-NK_API nk_bool
 nk_menu_begin_symbol_text(struct nk_context *ctx, const char *title, int len,
     nk_flags align, enum nk_symbol_type sym, struct nk_vec2 size)
 {
@@ -21263,26 +21198,9 @@ nk_menu_begin_symbol_text(struct nk_context *ctx, const char *title, int len,
     return nk_menu_begin(ctx, win, title, is_clicked, header, size);
 }
 NK_API nk_bool
-nk_menu_begin_symbol_label(struct nk_context *ctx,
-    const char *title, nk_flags align, enum nk_symbol_type sym, struct nk_vec2 size )
-{
-    return nk_menu_begin_symbol_text(ctx, title, nk_strlen(title), align,sym,size);
-}
-NK_API nk_bool
 nk_menu_item_text(struct nk_context *ctx, const char *title, int len, nk_flags align)
 {
     return nk_contextual_item_text(ctx, title, len, align);
-}
-NK_API nk_bool
-nk_menu_item_label(struct nk_context *ctx, const char *label, nk_flags align)
-{
-    return nk_contextual_item_label(ctx, label, align);
-}
-NK_API nk_bool
-nk_menu_item_image_label(struct nk_context *ctx, struct nk_image img,
-    const char *label, nk_flags align)
-{
-    return nk_contextual_item_image_label(ctx, img, label, align);
 }
 NK_API nk_bool
 nk_menu_item_image_text(struct nk_context *ctx, struct nk_image img,
@@ -21294,11 +21212,6 @@ NK_API nk_bool nk_menu_item_symbol_text(struct nk_context *ctx, enum nk_symbol_t
     const char *text, int len, nk_flags align)
 {
     return nk_contextual_item_symbol_text(ctx, sym, text, len, align);
-}
-NK_API nk_bool nk_menu_item_symbol_label(struct nk_context *ctx, enum nk_symbol_type sym,
-    const char *label, nk_flags align)
-{
-    return nk_contextual_item_symbol_label(ctx, sym, label, align);
 }
 NK_API void nk_menu_close(struct nk_context *ctx)
 {
@@ -23219,28 +23132,6 @@ nk_text_wrap(struct nk_context *ctx, const char *str, int len)
     if (!ctx) return;
     nk_text_wrap_colored(ctx, str, len, ctx->style.text.color);
 }
-NK_API void
-nk_label(struct nk_context *ctx, const char *str, nk_flags alignment)
-{
-    nk_text(ctx, str, nk_strlen(str), alignment);
-}
-NK_API void
-nk_label_colored(struct nk_context *ctx, const char *str, nk_flags align,
-    struct nk_color color)
-{
-    nk_text_colored(ctx, str, nk_strlen(str), align, color);
-}
-NK_API void
-nk_label_wrap(struct nk_context *ctx, const char *str)
-{
-    nk_text_wrap(ctx, str, nk_strlen(str));
-}
-NK_API void
-nk_label_colored_wrap(struct nk_context *ctx, const char *str, struct nk_color color)
-{
-    nk_text_wrap_colored(ctx, str, nk_strlen(str), color);
-}
-
 
 
 
@@ -23860,15 +23751,6 @@ nk_button_text(struct nk_context *ctx, const char *title, int len)
     if (!ctx) return 0;
     return nk_button_text_styled(ctx, &ctx->style.button, title, len);
 }
-NK_API nk_bool nk_button_label_styled(struct nk_context *ctx,
-    const struct nk_style_button *style, const char *title)
-{
-    return nk_button_text_styled(ctx, style, title, nk_strlen(title));
-}
-NK_API nk_bool nk_button_label(struct nk_context *ctx, const char *title)
-{
-    return nk_button_text(ctx, title, nk_strlen(title));
-}
 NK_API nk_bool
 nk_button_color(struct nk_context *ctx, struct nk_color color)
 {
@@ -24005,17 +23887,6 @@ nk_button_symbol_text(struct nk_context *ctx, enum nk_symbol_type symbol,
     if (!ctx) return 0;
     return nk_button_symbol_text_styled(ctx, &ctx->style.button, symbol, text, len, align);
 }
-NK_API nk_bool nk_button_symbol_label(struct nk_context *ctx, enum nk_symbol_type symbol,
-    const char *label, nk_flags align)
-{
-    return nk_button_symbol_text(ctx, symbol, label, nk_strlen(label), align);
-}
-NK_API nk_bool nk_button_symbol_label_styled(struct nk_context *ctx,
-    const struct nk_style_button *style, enum nk_symbol_type symbol,
-    const char *title, nk_flags align)
-{
-    return nk_button_symbol_text_styled(ctx, style, symbol, title, nk_strlen(title), align);
-}
 NK_API nk_bool
 nk_button_image_text_styled(struct nk_context *ctx,
     const struct nk_style_button *style, struct nk_image img, const char *text,
@@ -24050,18 +23921,6 @@ nk_button_image_text(struct nk_context *ctx, struct nk_image img,
 {
     return nk_button_image_text_styled(ctx, &ctx->style.button,img, text, len, align);
 }
-NK_API nk_bool nk_button_image_label(struct nk_context *ctx, struct nk_image img,
-    const char *label, nk_flags align)
-{
-    return nk_button_image_text(ctx, img, label, nk_strlen(label), align);
-}
-NK_API nk_bool nk_button_image_label_styled(struct nk_context *ctx,
-    const struct nk_style_button *style, struct nk_image img,
-    const char *label, nk_flags text_alignment)
-{
-    return nk_button_image_text_styled(ctx, style, img, label, nk_strlen(label), text_alignment);
-}
-
 
 
 
@@ -24309,24 +24168,6 @@ nk_checkbox_flags_text(struct nk_context *ctx, const char *text, int len,
     }
     return 0;
 }
-NK_API nk_bool nk_check_label(struct nk_context *ctx, const char *label, nk_bool active)
-{
-    return nk_check_text(ctx, label, nk_strlen(label), active);
-}
-NK_API unsigned int nk_check_flags_label(struct nk_context *ctx, const char *label,
-    unsigned int flags, unsigned int value)
-{
-    return nk_check_flags_text(ctx, label, nk_strlen(label), flags, value);
-}
-NK_API nk_bool nk_checkbox_label(struct nk_context *ctx, const char *label, nk_bool *active)
-{
-    return nk_checkbox_text(ctx, label, nk_strlen(label), active);
-}
-NK_API nk_bool nk_checkbox_flags_label(struct nk_context *ctx, const char *label,
-    unsigned int *flags, unsigned int value)
-{
-    return nk_checkbox_flags_text(ctx, label, nk_strlen(label), flags, value);
-}
 /*----------------------------------------------------------------
  *
  *                          OPTION
@@ -24371,16 +24212,6 @@ nk_radio_text(struct nk_context *ctx, const char *text, int len, nk_bool *active
     old_value = *active;
     *active = nk_option_text(ctx, text, len, old_value);
     return old_value != *active;
-}
-NK_API nk_bool
-nk_option_label(struct nk_context *ctx, const char *label, nk_bool active)
-{
-    return nk_option_text(ctx, label, nk_strlen(label), active);
-}
-NK_API nk_bool
-nk_radio_label(struct nk_context *ctx, const char *label, nk_bool *active)
-{
-    return nk_radio_text(ctx, label, nk_strlen(label), active);
 }
 
 
@@ -24659,34 +24490,10 @@ nk_selectable_symbol_text(struct nk_context *ctx, enum nk_symbol_type sym,
     return nk_do_selectable_symbol(&ctx->last_widget_state, &win->buffer, bounds,
                 str, len, align, value, sym, &style->selectable, in, style->font);
 }
-NK_API nk_bool
-nk_selectable_symbol_label(struct nk_context *ctx, enum nk_symbol_type sym,
-    const char *title, nk_flags align, nk_bool *value)
-{
-    return nk_selectable_symbol_text(ctx, sym, title, nk_strlen(title), align, value);
-}
 NK_API nk_bool nk_select_text(struct nk_context *ctx, const char *str, int len,
     nk_flags align, nk_bool value)
 {
     nk_selectable_text(ctx, str, len, align, &value);return value;
-}
-NK_API nk_bool nk_selectable_label(struct nk_context *ctx, const char *str, nk_flags align, nk_bool *value)
-{
-    return nk_selectable_text(ctx, str, nk_strlen(str), align, value);
-}
-NK_API nk_bool nk_selectable_image_label(struct nk_context *ctx,struct nk_image img,
-    const char *str, nk_flags align, nk_bool *value)
-{
-    return nk_selectable_image_text(ctx, img, str, nk_strlen(str), align, value);
-}
-NK_API nk_bool nk_select_label(struct nk_context *ctx, const char *str, nk_flags align, nk_bool value)
-{
-    nk_selectable_text(ctx, str, nk_strlen(str), align, &value);return value;
-}
-NK_API nk_bool nk_select_image_label(struct nk_context *ctx, struct nk_image img,
-    const char *str, nk_flags align, nk_bool value)
-{
-    nk_selectable_image_text(ctx, img, str, nk_strlen(str), align, &value);return value;
 }
 NK_API nk_bool nk_select_image_text(struct nk_context *ctx, struct nk_image img,
     const char *str, int len, nk_flags align, nk_bool value)
@@ -24699,13 +24506,6 @@ nk_select_symbol_text(struct nk_context *ctx, enum nk_symbol_type sym,
 {
     nk_selectable_symbol_text(ctx, sym, title, title_len, align, &value);return value;
 }
-NK_API nk_bool
-nk_select_symbol_label(struct nk_context *ctx, enum nk_symbol_type sym,
-    const char *title, nk_flags align, nk_bool value)
-{
-    return nk_select_symbol_text(ctx, sym, title, nk_strlen(title), align, value);
-}
-
 
 
 
@@ -28401,11 +28201,6 @@ nk_combo_begin_text(struct nk_context *ctx, const char *selected, int len,
     return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
 NK_API nk_bool
-nk_combo_begin_label(struct nk_context *ctx, const char *selected, struct nk_vec2 size)
-{
-    return nk_combo_begin_text(ctx, selected, nk_strlen(selected), size);
-}
-NK_API nk_bool
 nk_combo_begin_color(struct nk_context *ctx, struct nk_color color, struct nk_vec2 size)
 {
     struct nk_window *win;
@@ -28858,26 +28653,9 @@ nk_combo_begin_image_text(struct nk_context *ctx, const char *selected, int len,
     return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
 NK_API nk_bool
-nk_combo_begin_symbol_label(struct nk_context *ctx,
-    const char *selected, enum nk_symbol_type type, struct nk_vec2 size)
-{
-    return nk_combo_begin_symbol_text(ctx, selected, nk_strlen(selected), type, size);
-}
-NK_API nk_bool
-nk_combo_begin_image_label(struct nk_context *ctx,
-    const char *selected, struct nk_image img, struct nk_vec2 size)
-{
-    return nk_combo_begin_image_text(ctx, selected, nk_strlen(selected), img, size);
-}
-NK_API nk_bool
 nk_combo_item_text(struct nk_context *ctx, const char *text, int len,nk_flags align)
 {
     return nk_contextual_item_text(ctx, text, len, align);
-}
-NK_API nk_bool
-nk_combo_item_label(struct nk_context *ctx, const char *label, nk_flags align)
-{
-    return nk_contextual_item_label(ctx, label, align);
 }
 NK_API nk_bool
 nk_combo_item_image_text(struct nk_context *ctx, struct nk_image img, const char *text,
@@ -28886,22 +28664,10 @@ nk_combo_item_image_text(struct nk_context *ctx, struct nk_image img, const char
     return nk_contextual_item_image_text(ctx, img, text, len, alignment);
 }
 NK_API nk_bool
-nk_combo_item_image_label(struct nk_context *ctx, struct nk_image img,
-    const char *text, nk_flags alignment)
-{
-    return nk_contextual_item_image_label(ctx, img, text, alignment);
-}
-NK_API nk_bool
 nk_combo_item_symbol_text(struct nk_context *ctx, enum nk_symbol_type sym,
     const char *text, int len, nk_flags alignment)
 {
     return nk_contextual_item_symbol_text(ctx, sym, text, len, alignment);
-}
-NK_API nk_bool
-nk_combo_item_symbol_label(struct nk_context *ctx, enum nk_symbol_type sym,
-    const char *label, nk_flags alignment)
-{
-    return nk_contextual_item_symbol_label(ctx, sym, label, alignment);
 }
 NK_API void nk_combo_end(struct nk_context *ctx)
 {
@@ -28931,10 +28697,10 @@ nk_combo(struct nk_context *ctx, const char **items, int count,
     max_height = count * item_height + count * (int)item_spacing.y;
     max_height += (int)item_spacing.y * 2 + (int)window_padding.y * 2;
     size.y = NK_MIN(size.y, (float)max_height);
-    if (nk_combo_begin_label(ctx, items[selected], size)) {
+    if (nk_combo_begin_text(ctx, items[selected], nk_strlen(items[selected]), size)) {
         nk_layout_row_dynamic(ctx, (float)item_height, 1);
         for (i = 0; i < count; ++i) {
-            if (nk_combo_item_label(ctx, items[i], NK_TEXT_LEFT))
+            if (nk_combo_item_text(ctx, items[i], nk_strlen(items[i]), NK_TEXT_LEFT))
                 selected = i;
         }
         nk_combo_end(ctx);
@@ -29019,11 +28785,11 @@ nk_combo_callback(struct nk_context *ctx, void(*item_getter)(void*, int, const c
     size.y = NK_MIN(size.y, (float)max_height);
 
     item_getter(userdata, selected, &item);
-    if (nk_combo_begin_label(ctx, item, size)) {
+    if (nk_combo_begin_text(ctx, item, nk_strlen(item), size)) {
         nk_layout_row_dynamic(ctx, (float)item_height, 1);
         for (i = 0; i < count; ++i) {
             item_getter(userdata, i, &item);
-            if (nk_combo_item_label(ctx, item, NK_TEXT_LEFT))
+            if (nk_combo_item_text(ctx, item, nk_strlen(item), NK_TEXT_LEFT))
                 selected = i;
         }
         nk_combo_end(ctx);

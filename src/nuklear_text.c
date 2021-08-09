@@ -268,25 +268,3 @@ nk_text_wrap(struct nk_context *ctx, const char *str, int len)
     if (!ctx) return;
     nk_text_wrap_colored(ctx, str, len, ctx->style.text.color);
 }
-NK_API void
-nk_label(struct nk_context *ctx, const char *str, nk_flags alignment)
-{
-    nk_text(ctx, str, nk_strlen(str), alignment);
-}
-NK_API void
-nk_label_colored(struct nk_context *ctx, const char *str, nk_flags align,
-    struct nk_color color)
-{
-    nk_text_colored(ctx, str, nk_strlen(str), align, color);
-}
-NK_API void
-nk_label_wrap(struct nk_context *ctx, const char *str)
-{
-    nk_text_wrap(ctx, str, nk_strlen(str));
-}
-NK_API void
-nk_label_colored_wrap(struct nk_context *ctx, const char *str, struct nk_color color)
-{
-    nk_text_wrap_colored(ctx, str, nk_strlen(str), color);
-}
-

@@ -273,34 +273,10 @@ nk_selectable_symbol_text(struct nk_context *ctx, enum nk_symbol_type sym,
     return nk_do_selectable_symbol(&ctx->last_widget_state, &win->buffer, bounds,
                 str, len, align, value, sym, &style->selectable, in, style->font);
 }
-NK_API nk_bool
-nk_selectable_symbol_label(struct nk_context *ctx, enum nk_symbol_type sym,
-    const char *title, nk_flags align, nk_bool *value)
-{
-    return nk_selectable_symbol_text(ctx, sym, title, nk_strlen(title), align, value);
-}
 NK_API nk_bool nk_select_text(struct nk_context *ctx, const char *str, int len,
     nk_flags align, nk_bool value)
 {
     nk_selectable_text(ctx, str, len, align, &value);return value;
-}
-NK_API nk_bool nk_selectable_label(struct nk_context *ctx, const char *str, nk_flags align, nk_bool *value)
-{
-    return nk_selectable_text(ctx, str, nk_strlen(str), align, value);
-}
-NK_API nk_bool nk_selectable_image_label(struct nk_context *ctx,struct nk_image img,
-    const char *str, nk_flags align, nk_bool *value)
-{
-    return nk_selectable_image_text(ctx, img, str, nk_strlen(str), align, value);
-}
-NK_API nk_bool nk_select_label(struct nk_context *ctx, const char *str, nk_flags align, nk_bool value)
-{
-    nk_selectable_text(ctx, str, nk_strlen(str), align, &value);return value;
-}
-NK_API nk_bool nk_select_image_label(struct nk_context *ctx, struct nk_image img,
-    const char *str, nk_flags align, nk_bool value)
-{
-    nk_selectable_image_text(ctx, img, str, nk_strlen(str), align, &value);return value;
 }
 NK_API nk_bool nk_select_image_text(struct nk_context *ctx, struct nk_image img,
     const char *str, int len, nk_flags align, nk_bool value)
@@ -313,10 +289,3 @@ nk_select_symbol_text(struct nk_context *ctx, enum nk_symbol_type sym,
 {
     nk_selectable_symbol_text(ctx, sym, title, title_len, align, &value);return value;
 }
-NK_API nk_bool
-nk_select_symbol_label(struct nk_context *ctx, enum nk_symbol_type sym,
-    const char *title, nk_flags align, nk_bool value)
-{
-    return nk_select_symbol_text(ctx, sym, title, nk_strlen(title), align, value);
-}
-

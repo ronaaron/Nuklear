@@ -244,24 +244,6 @@ nk_checkbox_flags_text(struct nk_context *ctx, const char *text, int len,
     }
     return 0;
 }
-NK_API nk_bool nk_check_label(struct nk_context *ctx, const char *label, nk_bool active)
-{
-    return nk_check_text(ctx, label, nk_strlen(label), active);
-}
-NK_API unsigned int nk_check_flags_label(struct nk_context *ctx, const char *label,
-    unsigned int flags, unsigned int value)
-{
-    return nk_check_flags_text(ctx, label, nk_strlen(label), flags, value);
-}
-NK_API nk_bool nk_checkbox_label(struct nk_context *ctx, const char *label, nk_bool *active)
-{
-    return nk_checkbox_text(ctx, label, nk_strlen(label), active);
-}
-NK_API nk_bool nk_checkbox_flags_label(struct nk_context *ctx, const char *label,
-    unsigned int *flags, unsigned int value)
-{
-    return nk_checkbox_flags_text(ctx, label, nk_strlen(label), flags, value);
-}
 /*----------------------------------------------------------------
  *
  *                          OPTION
@@ -306,15 +288,5 @@ nk_radio_text(struct nk_context *ctx, const char *text, int len, nk_bool *active
     old_value = *active;
     *active = nk_option_text(ctx, text, len, old_value);
     return old_value != *active;
-}
-NK_API nk_bool
-nk_option_label(struct nk_context *ctx, const char *label, nk_bool active)
-{
-    return nk_option_text(ctx, label, nk_strlen(label), active);
-}
-NK_API nk_bool
-nk_radio_label(struct nk_context *ctx, const char *label, nk_bool *active)
-{
-    return nk_radio_text(ctx, label, nk_strlen(label), active);
 }
 

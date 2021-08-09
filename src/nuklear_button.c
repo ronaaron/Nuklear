@@ -475,15 +475,6 @@ nk_button_text(struct nk_context *ctx, const char *title, int len)
     if (!ctx) return 0;
     return nk_button_text_styled(ctx, &ctx->style.button, title, len);
 }
-NK_API nk_bool nk_button_label_styled(struct nk_context *ctx,
-    const struct nk_style_button *style, const char *title)
-{
-    return nk_button_text_styled(ctx, style, title, nk_strlen(title));
-}
-NK_API nk_bool nk_button_label(struct nk_context *ctx, const char *title)
-{
-    return nk_button_text(ctx, title, nk_strlen(title));
-}
 NK_API nk_bool
 nk_button_color(struct nk_context *ctx, struct nk_color color)
 {
@@ -620,17 +611,6 @@ nk_button_symbol_text(struct nk_context *ctx, enum nk_symbol_type symbol,
     if (!ctx) return 0;
     return nk_button_symbol_text_styled(ctx, &ctx->style.button, symbol, text, len, align);
 }
-NK_API nk_bool nk_button_symbol_label(struct nk_context *ctx, enum nk_symbol_type symbol,
-    const char *label, nk_flags align)
-{
-    return nk_button_symbol_text(ctx, symbol, label, nk_strlen(label), align);
-}
-NK_API nk_bool nk_button_symbol_label_styled(struct nk_context *ctx,
-    const struct nk_style_button *style, enum nk_symbol_type symbol,
-    const char *title, nk_flags align)
-{
-    return nk_button_symbol_text_styled(ctx, style, symbol, title, nk_strlen(title), align);
-}
 NK_API nk_bool
 nk_button_image_text_styled(struct nk_context *ctx,
     const struct nk_style_button *style, struct nk_image img, const char *text,
@@ -665,15 +645,3 @@ nk_button_image_text(struct nk_context *ctx, struct nk_image img,
 {
     return nk_button_image_text_styled(ctx, &ctx->style.button,img, text, len, align);
 }
-NK_API nk_bool nk_button_image_label(struct nk_context *ctx, struct nk_image img,
-    const char *label, nk_flags align)
-{
-    return nk_button_image_text(ctx, img, label, nk_strlen(label), align);
-}
-NK_API nk_bool nk_button_image_label_styled(struct nk_context *ctx,
-    const struct nk_style_button *style, struct nk_image img,
-    const char *label, nk_flags text_alignment)
-{
-    return nk_button_image_text_styled(ctx, style, img, label, nk_strlen(label), text_alignment);
-}
-
