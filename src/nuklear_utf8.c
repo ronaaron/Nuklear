@@ -104,6 +104,7 @@ nk_utf_len(const char *str, int len)
     }
     return glyphs;
 }
+/*
 NK_API const char*
 nk_utf_at(const char *buffer, int length, int index,
     nk_rune *unicode, int *len)
@@ -141,4 +142,4 @@ nk_utf_at(const char *buffer, int length, int index,
     if (i != index) return 0;
     return buffer + src_len;
 }
-
+*/

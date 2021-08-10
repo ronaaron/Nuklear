@@ -3536,7 +3536,7 @@ NK_API int nk_strmatch_fuzzy_text(const char *txt, int txt_len, const char *patt
 NK_API int nk_utf_decode(const char*, nk_rune*, int);
 NK_API int nk_utf_encode(nk_rune, char*, int);
 NK_API int nk_utf_len(const char*, int byte_len);
-NK_API const char* nk_utf_at(const char *buffer, int length, int index, nk_rune *unicode, int *len);
+/*NK_API const char* nk_utf_at(const char *buffer, int length, int index, nk_rune *unicode, int *len);*/
 /* ===============================================================
  *
  *                          FONT
