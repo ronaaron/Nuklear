@@ -221,6 +221,23 @@ NK_STATIC_ASSERT(sizeof(nk_bool) >= 2);
 
 /* ============================================================================
  *
+ *							   OVERRIDES
+ *
+ * =========================================================================== */
+
+/* #define NK_HASH(k,l,s) */
+#ifdef NK_STRLEN
+#define nk_strlen(s) NK_STRLEN(s)
+#endif
+#ifdef NK_STRICMP
+#define nk_stricmp(s1,s2) NK_STRICMP(s1,s2)
+#endif
+#ifndef NK_STRICMPN
+#define nk_stricmpn(s1,s2,n) NK_STRICMPN(s1,s2,n)
+#endif
+
+/* ============================================================================
+ *
  *                                  API
  *
  * =========================================================================== */
@@ -3461,7 +3478,12 @@ NK_API struct nk_image nk_subimage_handle(nk_handle, unsigned short w, unsigned 
  *                                  MATH
  *
  * ============================================================================= */
+#ifdef NK_HASH
+#define nk_murmur_hash(k,l,h) NK_HASH(k,l,h)
+#else
 NK_API nk_hash nk_murmur_hash(const void *key, int len, nk_hash seed);
+#endif
+
 NK_API void nk_triangle_from_direction(struct nk_vec2 *result, struct nk_rect r, float pad_x, float pad_y, enum nk_heading);
 
 NK_API struct nk_vec2 nk_vec2(float x, float y);
@@ -3482,11 +3504,23 @@ NK_API struct nk_vec2 nk_rect_size(struct nk_rect);
  *                                  STRING
  *
  * ============================================================================= */
+#ifndef NK_STRLEN
 NK_API int nk_strlen(const char *str);
+#endif
+#ifndef NK_STRICMP
 NK_API int nk_stricmp(const char *s1, const char *s2);
+#endif
+#ifndef NK_STRICMPN
 NK_API int nk_stricmpn(const char *s1, const char *s2, int n);
+#endif
+#ifndef NK_STRTOI
+#define NK_STRTOI nk_strtoi
 NK_API int nk_strtoi(const char *str, const char **endptr);
+#endif
+#ifndef NK_STRTOF
+#define NK_STRTOF nk_strtof
 NK_API float nk_strtof(const char *str, const char **endptr);
+#endif
 #ifndef NK_STRTOD
 #define NK_STRTOD nk_strtod
 NK_API double nk_strtod(const char *str, const char **endptr);

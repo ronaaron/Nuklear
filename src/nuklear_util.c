@@ -132,6 +132,7 @@ nk_zero(void *ptr, nk_size size)
     NK_ASSERT(ptr);
     NK_MEMSET(ptr, 0, size);
 }
+#ifndef NK_STRLEN
 NK_API int
 nk_strlen(const char *str)
 {
@@ -140,6 +141,7 @@ nk_strlen(const char *str)
     while (str && *str++ != '\0') siz++;
     return siz;
 }
+#endif
 NK_API int
 nk_strtoi(const char *str, const char **endptr)
 {
@@ -918,6 +920,7 @@ nk_strfmt(char *buf, int buf_size, const char *fmt, va_list args)
     return result;
 }
 #endif
+#ifndef NK_HASH
 NK_API nk_hash
 nk_murmur_hash(const void * key, int len, nk_hash seed)
 {
@@ -982,6 +985,7 @@ nk_murmur_hash(const void * key, int len, nk_hash seed)
     #undef NK_ROTL
     return h1;
 }
+#endif
 #ifdef NK_INCLUDE_STANDARD_IO
 NK_LIB char*
 nk_file_load(const char* path, nk_size* siz, struct nk_allocator *alloc)
