@@ -453,7 +453,7 @@ NK_STATIC_ASSERT(sizeof(nk_bool) >= 2);
 #ifdef NK_STRICMP
 #define nk_stricmp(s1,s2) NK_STRICMP(s1,s2)
 #endif
-#ifndef NK_STRICMPN
+#ifdef NK_STRICMPN
 #define nk_stricmpn(s1,s2,n) NK_STRICMPN(s1,s2,n)
 #endif
 
@@ -3734,16 +3734,19 @@ NK_API int nk_stricmp(const char *s1, const char *s2);
 #ifndef NK_STRICMPN
 NK_API int nk_stricmpn(const char *s1, const char *s2, int n);
 #endif
-#ifndef NK_STRTOI
-#define NK_STRTOI nk_strtoi
+#ifdef NK_STRTOI
+#define nk_strtoi NK_STRTOI
+#else
 NK_API int nk_strtoi(const char *str, const char **endptr);
 #endif
-#ifndef NK_STRTOF
-#define NK_STRTOF nk_strtof
+#ifdef NK_STRTOF
+#define nk_strtof NK_STRTOF 
+#else
 NK_API float nk_strtof(const char *str, const char **endptr);
 #endif
-#ifndef NK_STRTOD
-#define NK_STRTOD nk_strtod
+#ifdef NK_STRTOD
+#define nk_strtod NK_STRTOD 
+#else
 NK_API double nk_strtod(const char *str, const char **endptr);
 #endif
 NK_API int nk_strfilter(const char *text, const char *regexp);
@@ -6508,6 +6511,7 @@ nk_strlen(const char *str)
     return siz;
 }
 #endif
+#ifndef NK_STRTOI
 NK_API int
 nk_strtoi(const char *str, const char **endptr)
 {
@@ -6532,6 +6536,8 @@ nk_strtoi(const char *str, const char **endptr)
         *endptr = p;
     return neg*value;
 }
+#endif
+#ifndef NK_STRTOD
 NK_API double
 nk_strtod(const char *str, const char **endptr)
 {
@@ -6589,6 +6595,8 @@ nk_strtod(const char *str, const char **endptr)
         *endptr = p;
     return number;
 }
+#endif
+#ifndef NK_STRTOF
 NK_API float
 nk_strtof(const char *str, const char **endptr)
 {
@@ -6598,6 +6606,8 @@ nk_strtof(const char *str, const char **endptr)
     float_value = (float)double_value;
     return float_value;
 }
+#endif
+#ifndef NK_STRICMP
 NK_API int
 nk_stricmp(const char *s1, const char *s2)
 {
@@ -6620,6 +6630,8 @@ nk_stricmp(const char *s1, const char *s2)
     } while (c1);
     return 0;
 }
+#endif
+#ifndef NK_STRICMPN
 NK_API int
 nk_stricmpn(const char *s1, const char *s2, int n)
 {
@@ -6645,6 +6657,7 @@ nk_stricmpn(const char *s1, const char *s2, int n)
     } while (c1);
     return 0;
 }
+#endif
 NK_INTERN int
 nk_str_match_here(const char *regexp, const char *text)
 {
@@ -19102,7 +19115,7 @@ nk_pool_init_fixed(struct nk_pool *pool, void *memory, nk_size size)
     NK_ASSERT(size >= sizeof(struct nk_page));
     if (size < sizeof(struct nk_page)) return;
     /* first nk_page_element is embedded in nk_page, additional elements follow in adjacent space */
-    pool->capacity = 1 + (unsigned)(size - sizeof(struct nk_page)) / sizeof(struct nk_page_element);
+    pool->capacity = (unsigned)(1 + (size - sizeof(struct nk_page)) / sizeof(struct nk_page_element));
     pool->pages = (struct nk_page*)memory;
     pool->type = NK_BUFFER_FIXED;
     pool->size = size;
@@ -19408,8 +19421,8 @@ nk_panel_begin(struct nk_context *ctx, const char *title, enum nk_panel_type pan
 
     /* window movement */
     if ((win->flags & NK_WINDOW_MOVABLE) && !(win->flags & NK_WINDOW_ROM)) {
-        int left_mouse_down;
-        int left_mouse_clicked;
+        nk_bool left_mouse_down;
+        unsigned int left_mouse_clicked;
         int left_mouse_click_in_cursor;
 
         /* calculate draggable window space */
@@ -19424,7 +19437,7 @@ nk_panel_begin(struct nk_context *ctx, const char *title, enum nk_panel_type pan
 
         /* window movement by dragging */
         left_mouse_down = in->mouse.buttons[NK_BUTTON_LEFT].down;
-        left_mouse_clicked = (int)in->mouse.buttons[NK_BUTTON_LEFT].clicked;
+        left_mouse_clicked = in->mouse.buttons[NK_BUTTON_LEFT].clicked;
         left_mouse_click_in_cursor = nk_input_has_mouse_click_down_in_rect(in,
             NK_BUTTON_LEFT, header, nk_true);
         if (left_mouse_down && left_mouse_click_in_cursor && !left_mouse_clicked) {
@@ -21314,6 +21327,8 @@ nk_layout_row_calculate_usable_space(const struct nk_style *style, enum nk_panel
 
     struct nk_vec2 spacing;
 
+    NK_UNUSED(type);
+
     spacing = style->window.spacing;
 
     /* calculate the usable panel space */
@@ -21864,7 +21879,7 @@ nk_layout_widget_space(struct nk_rect *bounds, const struct nk_context *ctx,
     panel_space = nk_layout_row_calculate_usable_space(&ctx->style, layout->type,
                                             layout->bounds.w, layout->row.columns);
 
-    #define NK_FRAC(x) (x - (int)x) /* will be used to remove fookin gaps */
+    #define NK_FRAC(x) (x - (float)(int)x) /* will be used to remove fookin gaps */
     /* calculate the width of one item inside the current layout space */
     switch (layout->row.type) {
     case NK_LAYOUT_DYNAMIC_FIXED: {
@@ -24961,7 +24976,7 @@ nk_scrollbar_behavior(nk_flags *state, struct nk_input *in,
 {
     nk_flags ws = 0;
     int left_mouse_down;
-    int left_mouse_clicked;
+    unsigned int left_mouse_clicked;
     int left_mouse_click_in_cursor;
     float scroll_delta;
 

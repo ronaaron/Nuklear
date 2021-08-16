@@ -142,6 +142,7 @@ nk_strlen(const char *str)
     return siz;
 }
 #endif
+#ifndef NK_STRTOI
 NK_API int
 nk_strtoi(const char *str, const char **endptr)
 {
@@ -166,6 +167,8 @@ nk_strtoi(const char *str, const char **endptr)
         *endptr = p;
     return neg*value;
 }
+#endif
+#ifndef NK_STRTOD
 NK_API double
 nk_strtod(const char *str, const char **endptr)
 {
@@ -223,6 +226,8 @@ nk_strtod(const char *str, const char **endptr)
         *endptr = p;
     return number;
 }
+#endif
+#ifndef NK_STRTOF
 NK_API float
 nk_strtof(const char *str, const char **endptr)
 {
@@ -232,6 +237,8 @@ nk_strtof(const char *str, const char **endptr)
     float_value = (float)double_value;
     return float_value;
 }
+#endif
+#ifndef NK_STRICMP
 NK_API int
 nk_stricmp(const char *s1, const char *s2)
 {
@@ -254,6 +261,8 @@ nk_stricmp(const char *s1, const char *s2)
     } while (c1);
     return 0;
 }
+#endif
+#ifndef NK_STRICMPN
 NK_API int
 nk_stricmpn(const char *s1, const char *s2, int n)
 {
@@ -279,6 +288,7 @@ nk_stricmpn(const char *s1, const char *s2, int n)
     } while (c1);
     return 0;
 }
+#endif
 NK_INTERN int
 nk_str_match_here(const char *regexp, const char *text)
 {

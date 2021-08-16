@@ -232,7 +232,7 @@ NK_STATIC_ASSERT(sizeof(nk_bool) >= 2);
 #ifdef NK_STRICMP
 #define nk_stricmp(s1,s2) NK_STRICMP(s1,s2)
 #endif
-#ifndef NK_STRICMPN
+#ifdef NK_STRICMPN
 #define nk_stricmpn(s1,s2,n) NK_STRICMPN(s1,s2,n)
 #endif
 
@@ -3513,16 +3513,19 @@ NK_API int nk_stricmp(const char *s1, const char *s2);
 #ifndef NK_STRICMPN
 NK_API int nk_stricmpn(const char *s1, const char *s2, int n);
 #endif
-#ifndef NK_STRTOI
-#define NK_STRTOI nk_strtoi
+#ifdef NK_STRTOI
+#define nk_strtoi NK_STRTOI
+#else
 NK_API int nk_strtoi(const char *str, const char **endptr);
 #endif
-#ifndef NK_STRTOF
-#define NK_STRTOF nk_strtof
+#ifdef NK_STRTOF
+#define nk_strtof NK_STRTOF 
+#else
 NK_API float nk_strtof(const char *str, const char **endptr);
 #endif
-#ifndef NK_STRTOD
-#define NK_STRTOD nk_strtod
+#ifdef NK_STRTOD
+#define nk_strtod NK_STRTOD 
+#else
 NK_API double nk_strtod(const char *str, const char **endptr);
 #endif
 NK_API int nk_strfilter(const char *text, const char *regexp);
