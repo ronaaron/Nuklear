@@ -3513,21 +3513,25 @@ NK_API int nk_stricmp(const char *s1, const char *s2);
 #ifndef NK_STRICMPN
 NK_API int nk_stricmpn(const char *s1, const char *s2, int n);
 #endif
+
 #ifdef NK_STRTOI
 #define nk_strtoi NK_STRTOI
 #else
 NK_API int nk_strtoi(const char *str, const char **endptr);
 #endif
+
 #ifdef NK_STRTOF
 #define nk_strtof NK_STRTOF 
 #else
 NK_API float nk_strtof(const char *str, const char **endptr);
 #endif
+
 #ifdef NK_STRTOD
 #define nk_strtod NK_STRTOD 
 #else
 NK_API double nk_strtod(const char *str, const char **endptr);
 #endif
+
 NK_API int nk_strfilter(const char *text, const char *regexp);
 NK_API int nk_strmatch_fuzzy_string(char const *str, char const *pattern, int *out_score);
 NK_API int nk_strmatch_fuzzy_text(const char *txt, int txt_len, const char *pattern, int *out_score);
