@@ -23629,7 +23629,7 @@ nk_do_button_symbol(nk_flags *state,
     return ret;
 }
 
-struct nk_rect nk_scale_rect(struct nk_rect in, unsigned int scale, nk_text_align align)
+struct nk_rect nk_scale_rect(struct nk_rect out, struct nk_rect in, unsigned int scale, enum nk_text_align align)
 {
 	struct nk_rect r = in;
 	if (scale && scale < 100) {
@@ -23637,27 +23637,30 @@ struct nk_rect nk_scale_rect(struct nk_rect in, unsigned int scale, nk_text_alig
 		r.h *= factor;
 		r.w *= factor;
 		if (align) {
-			if (align & NK_TEXT_CENTERED) {
-				r.x += (in.w - r.w)/2;
-				r.y += (in.h - r.h)/2;
+			if (align & NK_TEXT_ALIGN_CENTERED) {
+				r.x = out.x + (out.w - r.w)/2;
+			} 
+			if (align & NK_TEXT_ALIGN_MIDDLE) {
+				r.y = out.y + (out.h - r.h)/2;
 			} 
 			if (align & NK_TEXT_ALIGN_RIGHT) {
-				r.x = in.x + (in.w - r.w);
+				r.x = out.x + out.w - r.w;
 			}
 			if (align & NK_TEXT_ALIGN_BOTTOM) {
-				r.x = in.y + (in.h - r.h);
+				r.y = out.y + (out.h - r.h);
 			}
 		}
 	}
 	return r;
 }
+
 NK_LIB void
 nk_draw_button_image(struct nk_command_buffer *out,
     const struct nk_rect *bounds, const struct nk_rect *content,
     nk_flags state, const struct nk_style_button *style, const struct nk_image *img)
 {
     nk_draw_button(out, bounds, state, style);
-	struct nk_rect r = nk_scale_rect(*content, style->image_scale, style->image_align);
+	struct nk_rect r = nk_scale_rect(*bounds, *content, style->image_scale, style->image_align);
     nk_draw_image(out, r, img, nk_white);
 }
 NK_LIB nk_bool
@@ -23778,7 +23781,7 @@ nk_draw_button_text_image(struct nk_command_buffer *out,
 	text.background = style->text_background;
 	text.background.a=0;
     nk_widget_text(out, *label, str, len, &text, style->text_alignment, font);
-	struct nk_rect r = nk_scale_rect(*image, style->image_scale, style->image_align);
+	struct nk_rect r = nk_scale_rect(*label, *image, style->image_scale, style->image_align);
     nk_draw_image(out, r, img, nk_white);
 }
 NK_LIB nk_bool
