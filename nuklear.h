@@ -4894,6 +4894,8 @@ struct nk_style_button {
     struct nk_vec2 padding;
     struct nk_vec2 image_padding;
     struct nk_vec2 touch_padding;
+	unsigned int image_scale; /* pct of rect drawing into; 0 = no scale */
+	nk_text_align image_align;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -23626,13 +23628,37 @@ nk_do_button_symbol(nk_flags *state,
     if (style->draw_end) style->draw_end(out, style->userdata);
     return ret;
 }
+
+struct nk_rect nk_scale_rect(struct nk_rect in, unsigned int scale, nk_text_align align)
+{
+	struct nk_rect r = in;
+	if (scale && scale < 100) {
+        float factor = scale / 100.0;
+		r.h *= factor;
+		r.w *= factor;
+		if (align) {
+			if (align & NK_TEXT_CENTERED) {
+				r.x += (in.w - r.w)/2;
+				r.y += (in.h - r.h)/2;
+			} 
+			if (align & NK_TEXT_ALIGN_RIGHT) {
+				r.x = in.x + (in.w - r.w);
+			}
+			if (align & NK_TEXT_ALIGN_BOTTOM) {
+				r.x = in.y + (in.h - r.h);
+			}
+		}
+	}
+	return r;
+}
 NK_LIB void
 nk_draw_button_image(struct nk_command_buffer *out,
     const struct nk_rect *bounds, const struct nk_rect *content,
     nk_flags state, const struct nk_style_button *style, const struct nk_image *img)
 {
     nk_draw_button(out, bounds, state, style);
-    nk_draw_image(out, *content, img, nk_white);
+	struct nk_rect r = nk_scale_rect(*content, style->image_scale, style->image_align);
+    nk_draw_image(out, r, img, nk_white);
 }
 NK_LIB nk_bool
 nk_do_button_image(nk_flags *state,
@@ -23751,8 +23777,9 @@ nk_draw_button_text_image(struct nk_command_buffer *out,
     text.padding = nk_vec2(0,0);
 	text.background = style->text_background;
 	text.background.a=0;
-    nk_widget_text(out, *label, str, len, &text, NK_TEXT_CENTERED, font);
-    nk_draw_image(out, *image, img, nk_white);
+    nk_widget_text(out, *label, str, len, &text, style->text_alignment, font);
+	struct nk_rect r = nk_scale_rect(*image, style->image_scale, style->image_align);
+    nk_draw_image(out, r, img, nk_white);
 }
 NK_LIB nk_bool
 nk_do_button_text_image(nk_flags *state,

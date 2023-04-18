@@ -4673,6 +4673,8 @@ struct nk_style_button {
     struct nk_vec2 padding;
     struct nk_vec2 image_padding;
     struct nk_vec2 touch_padding;
+	unsigned int image_scale; /* pct of rect drawing into; 0 = no scale */
+	nk_text_align image_align;
 
     /* optional user callbacks */
     nk_handle userdata;
