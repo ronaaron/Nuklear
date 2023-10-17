@@ -307,10 +307,10 @@ void my_stbtt_print(float x, float y, char *text)
       if (*text >= 32 && *text < 128) {
          stbtt_aligned_quad q;
          stbtt_GetBakedQuad(cdata, 512,512, *text-32, &x,&y,&q,1);//1=opengl & d3d10+,0=d3d9
-         glTexCoord2f(q.s0,q.t1); glVertex2f(q.x0,q.y0);
-         glTexCoord2f(q.s1,q.t1); glVertex2f(q.x1,q.y0);
-         glTexCoord2f(q.s1,q.t0); glVertex2f(q.x1,q.y1);
-         glTexCoord2f(q.s0,q.t0); glVertex2f(q.x0,q.y1);
+         glTexCoord2f(q.s0,q.t0); glVertex2f(q.x0,q.y0);
+         glTexCoord2f(q.s1,q.t0); glVertex2f(q.x1,q.y0);
+         glTexCoord2f(q.s1,q.t1); glVertex2f(q.x1,q.y1);
+         glTexCoord2f(q.s0,q.t1); glVertex2f(q.x0,q.y1);
       }
       ++text;
    }
@@ -3061,6 +3061,20 @@ static void stbtt__handle_clipped_edge(float *scanline, int x, stbtt__active_edg
    }
 }
 
+static float stbtt__sized_trapezoid_area(float height, float top_width, float bottom_width)
+{
+   STBTT_assert(top_width >= 0);
+   STBTT_assert(bottom_width >= 0);
+   return (top_width + bottom_width) / 2.0f * height;
+}
+static float stbtt__position_trapezoid_area(float height, float tx0, float tx1, float bx0, float bx1)
+{
+   return stbtt__sized_trapezoid_area(height, tx1 - tx0, bx1 - bx0);
+}
+static float stbtt__sized_triangle_area(float height, float width)
+{
+   return height * width / 2;
+}
 static void stbtt__fill_active_edges_new(float *scanline, float *scanline_fill, int len, stbtt__active_edge *e, float y_top)
 {
    float y_bottom = y_top+1;
@@ -3115,10 +3129,10 @@ static void stbtt__fill_active_edges_new(float *scanline, float *scanline_fill, 
                float height;
                // simple case, only spans one pixel
                int x = (int) x_top;
-               height = sy1 - sy0;
+               height = (sy1 - sy0) * e->direction;
                STBTT_assert(x >= 0 && x < len);
-               scanline[x] += e->direction * (1-((x_top - x) + (x_bottom-x))/2)  * height;
-               scanline_fill[x] += e->direction * height; // everything right of this pixel is filled
+               scanline[x]      += stbtt__position_trapezoid_area(height, x_top, x+1.0f, x_bottom, x+1.0f);
+               scanline_fill[x] += height; // everything right of this pixel is filled
             } else {
                int x,x1,x2;
                float y_crossing, y_final, step, sign, area;
@@ -3134,13 +3148,14 @@ static void stbtt__fill_active_edges_new(float *scanline, float *scanline_fill, 
                   dy = -dy;
                   t = x0, x0 = xb, xb = t;
                }
-               assert(dy >= 0);
-               assert(dx >= 0);
+               STBTT_assert(dy >= 0);
+               STBTT_assert(dx >= 0);
 
                x1 = (int) x_top;
                x2 = (int) x_bottom;
                // compute intersection with y axis at x1+1
-               y_crossing = (x1+1 - x0) * dy + y_top;
+               y_crossing = y_top + dy * (x1+1 - x0);
+               y_final = y_top + dy * (x2 - x0);
                // if x2 is right at the right edge of x1, y_crossing can blow up, github #1057
                if (y_crossing > y_bottom)
                   y_crossing = y_bottom;
@@ -3149,10 +3164,9 @@ static void stbtt__fill_active_edges_new(float *scanline, float *scanline_fill, 
                // area of the rectangle covered from y0..y_crossing
                area = sign * (y_crossing-sy0);
                // area of the triangle (x_top,y0), (x+1,y0), (x+1,y_crossing)
-               scanline[x1] += area * (x1+1 - x_top)/2;
+               scanline[x1] += stbtt__sized_triangle_area(area, x1+1 - x_top);
 
                // check if final y_crossing is blown up; no test case for this
-               y_final = y_crossing + dy * (x2 - (x1+1)); // advance y by number of steps taken below
                if (y_final > y_bottom) {
                   y_final = y_bottom;
                   dy = (y_final - y_crossing ) / (x2 - (x1+1)); // if denom=0, y_final = y_crossing, so y_final <= y_bottom
@@ -3164,9 +3178,10 @@ static void stbtt__fill_active_edges_new(float *scanline, float *scanline_fill, 
                   area += step;
                }
                STBTT_assert(STBTT_fabs(area) <= 1.01f); // accumulated error from area += step unless we round step down
+               STBTT_assert(sy1 > y_final-0.01f);
 
                // area of the triangle (x2,y_crossing), (x_bottom,y1), (x2,y1)
-               scanline[x2] += area + sign * (x_bottom - x2)/2 * (sy1-y_crossing);
+               scanline[x2] += area + sign * stbtt__position_trapezoid_area(sy1-y_final, (float) x2, x2+1.0f, x_bottom, x2+1.0f);
 
                scanline_fill[x2] += sign * (sy1-sy0);
             }

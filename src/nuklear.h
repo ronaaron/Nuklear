@@ -151,7 +151,7 @@ extern "C" {
     #elif (defined(_WIN32) || defined(WIN32)) && defined(_MSC_VER)
       #define NK_SIZE_TYPE unsigned __int32
     #elif defined(__GNUC__) || defined(__clang__)
-      #if defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__)
+      #if defined(__x86_64__) || defined(__ppc64__) || defined(__PPC64__) || defined(__aarch64__)
         #define NK_SIZE_TYPE unsigned long
       #else
         #define NK_SIZE_TYPE unsigned int
@@ -166,7 +166,7 @@ extern "C" {
     #elif (defined(_WIN32) || defined(WIN32)) && defined(_MSC_VER)
       #define NK_POINTER_TYPE unsigned __int32
     #elif defined(__GNUC__) || defined(__clang__)
-      #if defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__)
+      #if defined(__x86_64__) || defined(__ppc64__) || defined(__PPC64__) || defined(__aarch64__)
         #define NK_POINTER_TYPE unsigned long
       #else
         #define NK_POINTER_TYPE unsigned int
@@ -1795,6 +1795,7 @@ NK_API void nk_window_show(struct nk_context*, nk_hash id, enum nk_show_states);
 /// __cond__    | condition that has to be met to actually commit the visbility state change
 */
 NK_API void nk_window_show_if(struct nk_context*, nk_hash id, enum nk_show_states, int cond);
+NK_API void nk_rule_horizontal(struct nk_context *ctx, struct nk_color color, nk_bool rounding);
 /* =============================================================================
  *
  *                                  LAYOUT
@@ -5516,4 +5517,6 @@ template<typename T> struct nk_alignof{struct Big {T x; char c;}; enum {
 #define NK_ALIGNOF(t) ((char*)(&((struct {char c; t _h;}*)0)->_h) - (char*)0)
 #endif
 
+#define NK_CONTAINER_OF(ptr,type,member)\
+    (type*)((void*)((char*)(1 ? (ptr): &((type*)0)->member) - NK_OFFSETOF(type, member)))
 #endif /* NK_NUKLEAR_H_ */
