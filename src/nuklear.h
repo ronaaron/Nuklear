@@ -277,6 +277,7 @@ struct nk_recti {short x,y,w,h;};
 typedef char nk_glyph[NK_UTF_SIZE];
 typedef union {void *ptr; int id;} nk_handle;
 struct nk_image {nk_handle handle; nk_ushort w, h; nk_ushort region[4];};
+struct nk_nine_slice {struct nk_image img; nk_ushort l, t, r, b;};
 struct nk_cursor {struct nk_image img; struct nk_vec2 size, offset;};
 struct nk_scroll {nk_uint x, y;};
 
@@ -2868,7 +2869,8 @@ NK_API void nk_list_view_end(struct nk_list_view*);
 enum nk_widget_layout_states {
     NK_WIDGET_INVALID, /* The widget cannot be seen and is completely out of view */
     NK_WIDGET_VALID, /* The widget is completely inside the window and can be updated and drawn */
-    NK_WIDGET_ROM /* The widget is partially visible and cannot be updated */
+    NK_WIDGET_ROM, /* The widget is partially visible and cannot be updated */
+    NK_WIDGET_DISABLED /* The widget is manually disabled and acts like NK_WIDGET_ROM */
 };
 enum nk_widget_states {
     NK_WIDGET_STATE_MODIFIED    = NK_FLAG(1),
@@ -2891,6 +2893,8 @@ NK_API nk_bool nk_widget_is_hovered(struct nk_context*);
 NK_API nk_bool nk_widget_is_mouse_clicked(struct nk_context*, enum nk_buttons);
 NK_API nk_bool nk_widget_has_mouse_click_down(struct nk_context*, enum nk_buttons, nk_bool down);
 NK_API void nk_spacing(struct nk_context*, int cols);
+NK_API void nk_widget_disable_begin(struct nk_context* ctx);
+NK_API void nk_widget_disable_end(struct nk_context* ctx);
 /* =============================================================================
  *
  *                                  TEXT
@@ -3348,6 +3352,7 @@ NK_API void nk_menu_end(struct nk_context*);
  *                                  STYLE
  *
  * ============================================================================= */
+#define NK_WIDGET_DISABLED_FACTOR 0.5f
 enum nk_style_colors {
     NK_COLOR_TEXT,
     NK_COLOR_WINDOW,
@@ -3424,6 +3429,7 @@ NK_API struct nk_color nk_rgb_f(float r, float g, float b);
 NK_API struct nk_color nk_rgb_fv(const float *rgb);
 NK_API struct nk_color nk_rgb_cf(struct nk_colorf c);
 NK_API struct nk_color nk_rgb_hex(const char *rgb);
+NK_API struct nk_color nk_rgb_factor(struct nk_color col, const float factor);
 
 NK_API struct nk_color nk_rgba(int r, int g, int b, int a);
 NK_API struct nk_color nk_rgba_u32(nk_uint);
@@ -3491,6 +3497,13 @@ NK_API struct nk_image nk_subimage_id(int, unsigned short w, unsigned short h, s
 NK_API struct nk_image nk_subimage_handle(nk_handle, unsigned short w, unsigned short h, struct nk_rect sub_region);
 /* =============================================================================
  *
+NK_API struct nk_nine_slice nk_nine_slice_handle(nk_handle, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b);
+NK_API struct nk_nine_slice nk_nine_slice_ptr(void*, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b);
+NK_API struct nk_nine_slice nk_nine_slice_id(int, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b);
+NK_API int nk_nine_slice_is_sub9slice(const struct nk_nine_slice* img);
+NK_API struct nk_nine_slice nk_sub9slice_ptr(void*, nk_ushort w, nk_ushort h, struct nk_rect sub_region, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b);
+NK_API struct nk_nine_slice nk_sub9slice_id(int, nk_ushort w, nk_ushort h, struct nk_rect sub_region, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b);
+NK_API struct nk_nine_slice nk_sub9slice_handle(nk_handle, nk_ushort w, nk_ushort h, struct nk_rect sub_region, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b);
  *                                  MATH
  *
  * ============================================================================= */
@@ -4412,6 +4425,7 @@ NK_API void nk_fill_polygon(struct nk_command_buffer*, float*, int point_count, 
 
 /* misc */
 NK_API void nk_draw_image(struct nk_command_buffer*, struct nk_rect, const struct nk_image*, struct nk_color);
+NK_API void nk_draw_nine_slice(struct nk_command_buffer*, struct nk_rect, const struct nk_nine_slice*, struct nk_color);
 NK_API void nk_draw_text(struct nk_command_buffer*, struct nk_rect, const char *text, int len, const struct nk_user_font*, struct nk_color, struct nk_color);
 NK_API void nk_push_scissor(struct nk_command_buffer*, struct nk_rect);
 NK_API void nk_push_custom(struct nk_command_buffer*, struct nk_rect, nk_command_custom_callback, nk_handle usr);
@@ -4636,12 +4650,14 @@ NK_API void nk_draw_list_add_special(struct nk_draw_list*, const struct nk_comma
  * ===============================================================*/
 enum nk_style_item_type {
     NK_STYLE_ITEM_COLOR,
-    NK_STYLE_ITEM_IMAGE
+    NK_STYLE_ITEM_IMAGE,
+    NK_STYLE_ITEM_NINE_SLICE
 };
 
 union nk_style_item_data {
-    struct nk_image image;
     struct nk_color color;
+    struct nk_image image;
+    struct nk_nine_slice slice;
 };
 
 struct nk_style_item {
@@ -4652,6 +4668,8 @@ struct nk_style_item {
 struct nk_style_text {
     struct nk_color color;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_button {
@@ -4660,6 +4678,7 @@ struct nk_style_button {
     struct nk_style_item hover;
     struct nk_style_item active;
     struct nk_color border_color;
+    float color_factor_background;
 
     /* text */
     struct nk_color text_background;
@@ -4667,6 +4686,7 @@ struct nk_style_button {
     struct nk_color text_hover;
     struct nk_color text_active;
     nk_flags text_alignment;
+    float color_factor_text;
 
     /* properties */
     float border;
@@ -4674,6 +4694,8 @@ struct nk_style_button {
     struct nk_vec2 padding;
     struct nk_vec2 image_padding;
     struct nk_vec2 touch_padding;
+    float disabled_factor;
+	/* ronaaron */
 	unsigned int image_scale; /* pct of rect drawing into; 0 = no scale */
 	nk_text_align image_align;
 
@@ -4706,6 +4728,8 @@ struct nk_style_toggle {
     struct nk_vec2 touch_padding;
     float spacing;
     float border;
+    float color_factor;
+    float disabled_factor;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -4741,6 +4765,8 @@ struct nk_style_selectable {
     struct nk_vec2 padding;
     struct nk_vec2 touch_padding;
     struct nk_vec2 image_padding;
+    float color_factor;
+    float disabled_factor;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -4773,6 +4799,8 @@ struct nk_style_slider {
     struct nk_vec2 padding;
     struct nk_vec2 spacing;
     struct nk_vec2 cursor_size;
+    float color_factor;
+    float disabled_factor;
 
     /* optional buttons */
     int show_buttons;
@@ -4806,6 +4834,8 @@ struct nk_style_progress {
     float cursor_border;
     float cursor_rounding;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -4832,6 +4862,8 @@ struct nk_style_scrollbar {
     float border_cursor;
     float rounding_cursor;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 
     /* optional buttons */
     int show_buttons;
@@ -4878,6 +4910,8 @@ struct nk_style_edit {
     struct nk_vec2 scrollbar_size;
     struct nk_vec2 padding;
     float row_padding;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_property {
@@ -4900,6 +4934,8 @@ struct nk_style_property {
     float border;
     float rounding;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 
     struct nk_style_edit edit;
     struct nk_style_button inc_button;
@@ -4922,6 +4958,8 @@ struct nk_style_chart {
     float border;
     float rounding;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_combo {
@@ -4953,6 +4991,8 @@ struct nk_style_combo {
     struct nk_vec2 content_padding;
     struct nk_vec2 button_padding;
     struct nk_vec2 spacing;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_tab {
@@ -4975,6 +5015,8 @@ struct nk_style_tab {
     float indent;
     struct nk_vec2 padding;
     struct nk_vec2 spacing;
+    float color_factor;
+    float disabled_factor;
 };
 
 enum nk_style_header_align {
@@ -5069,6 +5111,7 @@ struct nk_style {
     struct nk_style_window window;
 };
 
+NK_API struct nk_style_item nk_style_item_color(struct nk_color);
 NK_API struct nk_style_item nk_style_item_image(struct nk_image img);
 NK_API struct nk_style_item nk_style_item_color(struct nk_color);
 NK_API struct nk_style_item nk_style_item_hide(void);
@@ -5255,6 +5298,7 @@ struct nk_window {
     struct nk_popup_state popup;
     struct nk_edit_state edit;
     unsigned int scrolled;
+    nk_bool widgets_disabled;
 
     struct nk_table *tables;
     unsigned int table_count;

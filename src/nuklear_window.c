@@ -167,6 +167,7 @@ nk_begin_titled(struct nk_context *ctx, nk_hash id, const char *title,
         win->bounds = bounds;
         win->id = id;
         win->popup.win = 0;
+        win->widgets_disabled = nk_false;
         if (!ctx->active)
             ctx->active = win;
     } else {

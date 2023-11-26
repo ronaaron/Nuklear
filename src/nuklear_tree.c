@@ -49,14 +49,18 @@ nk_tree_state_base(struct nk_context *ctx, enum nk_tree_type type,
     widget_state = nk_widget(&header, ctx);
     if (type == NK_TREE_TAB) {
         const struct nk_style_item *background = &style->tab.background;
-        if (background->type == NK_STYLE_ITEM_IMAGE) {
-            nk_draw_image(out, header, &background->data.image, nk_white);
-            text.background = nk_rgba(0,0,0,0);
-        } else {
-            text.background = background->data.color;
-            nk_fill_rect(out, header, 0, style->tab.border_color);
+        switch(background->type) {
+            case NK_STYLE_ITEM_IMAGE:
+                nk_draw_image(out, header, &background->data.image, nk_rgb_factor(nk_white, style->tab.color_factor));
+                break;
+            case NK_STYLE_ITEM_NINE_SLICE:
+                nk_draw_nine_slice(out, header, &background->data.slice, nk_rgb_factor(nk_white, style->tab.color_factor));
+                break;
+            case NK_STYLE_ITEM_COLOR:
+                nk_fill_rect(out, header, 0, nk_rgb_factor(style->tab.border_color, style->tab.color_factor));
             nk_fill_rect(out, nk_shrink_rect(header, style->tab.border),
-                style->tab.rounding, background->data.color);
+                    style->tab.rounding, nk_rgb_factor(background->data.color, style->tab.color_factor));
+                break;
         }
     } else text.background = style->window.background;
 
@@ -100,7 +104,7 @@ nk_tree_state_base(struct nk_context *ctx, enum nk_tree_type type,
     label.y = sym.y;
     label.w = header.w - (sym.w + item_spacing.y + style->tab.indent);
     label.h = style->font->height;
-    text.text = style->tab.text;
+    text.text = nk_rgb_factor(style->tab.text, style->tab.color_factor);
     text.padding = nk_vec2(0,0);
     nk_widget_text(out, label, title, nk_strlen(title), &text,
         NK_TEXT_LEFT, style->font);}
@@ -234,12 +238,18 @@ nk_tree_element_image_push_hashed_base(struct nk_context *ctx, enum nk_tree_type
     widget_state = nk_widget(&header, ctx);
     if (type == NK_TREE_TAB) {
         const struct nk_style_item *background = &style->tab.background;
-        if (background->type == NK_STYLE_ITEM_IMAGE) {
-            nk_draw_image(out, header, &background->data.image, nk_white);
-        } else {
-            nk_fill_rect(out, header, 0, style->tab.border_color);
+        switch (background->type) {
+            case NK_STYLE_ITEM_IMAGE:
+                nk_draw_image(out, header, &background->data.image, nk_rgb_factor(nk_white, style->tab.color_factor));
+                break;
+            case NK_STYLE_ITEM_NINE_SLICE:
+                nk_draw_nine_slice(out, header, &background->data.slice, nk_rgb_factor(nk_white, style->tab.color_factor));
+                break;
+            case NK_STYLE_ITEM_COLOR:
+                nk_fill_rect(out, header, 0, nk_rgb_factor(style->tab.border_color, style->tab.color_factor));
             nk_fill_rect(out, nk_shrink_rect(header, style->tab.border),
-                style->tab.rounding, background->data.color);
+                    style->tab.rounding, nk_rgb_factor(background->data.color, style->tab.color_factor));
+                break;
         }
     }
 
