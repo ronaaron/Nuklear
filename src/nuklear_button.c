@@ -271,7 +271,7 @@ nk_draw_button_image(struct nk_command_buffer *out,
 {
     nk_draw_button(out, bounds, state, style);
 	struct nk_rect r = nk_scale_rect(*bounds, *content, style->image_scale, style->image_align);
-    nk_draw_image(out, *content, img, nk_rgb_factor(nk_white, style->color_factor_background));
+    nk_draw_image(out, r, img, nk_rgb_factor(nk_white, style->color_factor_background));
 }
 NK_LIB nk_bool
 nk_do_button_image(nk_flags *state,
@@ -395,7 +395,7 @@ nk_draw_button_text_image(struct nk_command_buffer *out,
 	text.background.a=0;
     nk_widget_text(out, *label, str, len, &text, style->text_alignment, font);
 	struct nk_rect r = nk_scale_rect(*label, *image, style->image_scale, style->image_align);
-    nk_draw_image(out, *image, img, nk_rgb_factor(nk_white, style->color_factor_background));
+    nk_draw_image(out, r, img, nk_rgb_factor(nk_white, style->color_factor_background));
 }
 NK_LIB nk_bool
 nk_do_button_text_image(nk_flags *state,
