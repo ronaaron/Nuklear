@@ -10622,17 +10622,160 @@ nk_draw_list_add_image(struct nk_draw_list *list, struct nk_image texture,
             nk_vec2(rect.x + rect.w, rect.y + rect.h),
             nk_vec2(0.0f, 0.0f), nk_vec2(1.0f, 1.0f),color);
 }
+
+/* 
+ * RTL text handling. Properly reverse RTL sequences so they print on screen correctly
+ */
+static int nk_rune_rtl(nk_rune rune)
+{
+	return (rune >= 0x0590 && rune <= 0x05FF) /* Hebrew */
+		|| (rune >= 0x0600 && rune <= 0x07BF) /* Arabic, Thana */
+		|| (rune >= 0x0870 && rune <= 0x08FF) /* Arabic Extended  */
+		|| (rune == 0x202B)
+		;
+}
+
+static int nk_sym(nk_rune rune)
+{
+	return rune==0x27 || rune ==0x22 || 
+		(rune >= 0x30 && rune <= 0x39) ||
+		rune == 0x28 || rune == 0x29 ||
+		rune == 0x5B || rune == 0x5D ;
+}
+
+static int nk_num(nk_rune rune) {
+	return	(rune >= 0x30 && rune <= 0x39) || (rune >= 0x23 && rune <= 0x26) || rune == 0x2C;
+}
+
+static int nk_ws_punct(nk_rune rune)
+{ 
+	return (rune < 0x40) // || (rune>=0x3A && rune <= 0x40)
+		|| (rune>=0x5B && rune <= 0x60) 
+		|| (rune>=0x78 && rune <= 0x7E) ;
+}
+
+static int nk_trailing_ws(nk_rune* unicode, int start)
+{
+	nk_rune rune = unicode[start];
+	while (start > 0 && rune<0x30)
+	{
+		--start;
+		rune = unicode[start];
+	}
+	return start;
+}
+
+static void nk_reverse_rtl(nk_rune *unicode, int start, int end)
+{
+	int os = start; 
+	int oe = end;
+	nk_rune rune;
+	while (start < end)
+	{
+		rune = unicode[start];
+		unicode[start] = unicode[end];
+		unicode[end] = rune;
+		++start;
+		--end;
+	}
+	/* now scan the run again, re-reversing any number+symbol runs */
+	start = os; end = oe;
+	while (start < end)
+	{
+		/* scan to number */
+		nk_rune rune = unicode[start];
+		if (nk_num(rune))
+		{
+			os = start;
+			oe = start;
+			while (nk_num(rune) && (oe<end))
+			{
+				rune = unicode[++oe];
+			}
+			--oe;
+			start = oe;
+			/* reverse from os to oe: */
+			while (os < oe)
+			{
+				rune = unicode[os];
+				unicode[os] = unicode[oe];
+				unicode[oe] = rune;
+				++os;
+				--oe;
+			}
+		}
+		++start;
+	}
+}
+
+/* 
+ * Decode the entire string from UTF-8 into Unicode,
+ * then reverse any RTL sequences.
+ *
+ * Assumes: 'unicode' is a buffer 'len' long
+ */
+static int nk_utf_decode_string_rtl(const char *text, nk_rune *unicode, int len)
+{
+	int glyph_len = 0;
+	int rtl_start = -1;
+	int cur_glyph = 0;
+	int decoded = 0;
+	nk_rune rune;
+
+	while (len>0)
+	{
+    	glyph_len = nk_utf_decode(text, unicode+decoded, len);
+		if (!glyph_len) break;
+		text += glyph_len;
+		len -= glyph_len;
+		rune = unicode[decoded];
+
+		if (rtl_start == -1)
+		{
+			if (nk_rune_rtl(rune))
+			{
+				/* back up over quotes, parens, brackets */
+				int run = decoded;
+				while (run > 0)
+				{
+					nk_rune prev_rune = unicode[run-1];
+					if (!nk_sym(prev_rune)) 
+						break;
+					else
+						--run;
+				}
+				rtl_start = run;
+			}
+		}
+		else
+		{
+			if (!nk_ws_punct(rune) && !nk_rune_rtl(rune))
+			{
+				/* ended the rtl run at (decoded-1) - trailing ws */
+				nk_reverse_rtl(unicode, rtl_start, nk_trailing_ws(unicode, decoded-1));
+				rtl_start = -1;
+			}
+		}
+		++decoded;
+	}
+	if (rtl_start != -1)
+	{
+		nk_reverse_rtl(unicode, rtl_start, nk_trailing_ws(unicode, decoded-1));
+	}
+	return decoded;
+}
+
 NK_API void
 nk_draw_list_add_text(struct nk_draw_list *list, const struct nk_user_font *font,
     struct nk_rect rect, const char *text, int len, float font_height,
     struct nk_color fg)
 {
     float x = 0;
-    int text_len = 0;
+    int ix = 0;
+	int rune_len =0;
     nk_rune unicode = 0;
+    nk_rune *unistr = (nk_rune*) alloca(len*sizeof(nk_rune));
     nk_rune next = 0;
-    int glyph_len = 0;
-    int next_glyph_len = 0;
     struct nk_user_font_glyph g;
 
     NK_ASSERT(list);
@@ -10644,18 +10787,22 @@ nk_draw_list_add_text(struct nk_draw_list *list, const struct nk_user_font *font
 	int font_texture_id = 0;
 
     x = rect.x;
-    glyph_len = nk_utf_decode(text, &unicode, len);
-    if (!glyph_len) return;
+
+	/* reverse all RTL sequences */
+	rune_len = nk_utf_decode_string_rtl(text, unistr, len);
+	if (!rune_len) return;
+	
 
     /* draw every glyph image */
     fg.a = (nk_byte)((float)fg.a * list->config.global_alpha);
-    while (text_len < len && glyph_len) {
+	for (ix=0; ix<rune_len; ix++)
+	{
         float gx, gy, gh, gw;
         float char_width = 0;
+		unicode = unistr[ix];
         if (unicode == NK_UTF_INVALID) break;
 
         /* query currently drawn glyph information */
-        next_glyph_len = nk_utf_decode(text + text_len + glyph_len, &next, (int)len - text_len);
         font->query(font->userdata, font_height, &g, unicode,
                     (next == NK_UTF_INVALID) ? '\0' : next);
 
@@ -10678,12 +10825,10 @@ nk_draw_list_add_text(struct nk_draw_list *list, const struct nk_user_font *font
             g.uv[0], g.uv[1], fg);
 
         /* offset next glyph */
-        text_len += glyph_len;
         x += char_width;
-        glyph_len = next_glyph_len;
-        unicode = next;
     }
 }
+
 NK_API nk_flags
 nk_convert(struct nk_context *ctx, struct nk_buffer *cmds,
     struct nk_buffer *vertices, struct nk_buffer *elements,
