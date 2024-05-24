@@ -29023,6 +29023,10 @@ nk_combo_begin_text(struct nk_context *ctx, const char *selected, int len,
         button.x = (header.x + header.w - header.h) - style->combo.button_padding.x;
         button.y = header.y + style->combo.button_padding.y;
         button.h = button.w;
+		if (ctx->rtl) {
+			button.x = header.x + style->combo.button_padding.x;
+		}
+ 
 
         content.x = button.x + style->combo.button.padding.x;
         content.y = button.y + style->combo.button.padding.y;
@@ -29034,8 +29038,14 @@ nk_combo_begin_text(struct nk_context *ctx, const char *selected, int len,
         label.x = header.x + style->combo.content_padding.x;
         label.y = header.y + style->combo.content_padding.y;
         label.h = header.h - 2 * style->combo.content_padding.y;
-        if (draw_button_symbol)
-            label.w = button.x - (style->combo.content_padding.x + style->combo.spacing.x) - label.x;
+        if (draw_button_symbol) {
+			if (ctx->rtl) {
+				label.x = button.x+button.w;
+				label.w = header.w - button.w - (style->combo.content_padding.x + style->combo.spacing.x) ;
+			} else {
+				label.w = button.x - (style->combo.content_padding.x + style->combo.spacing.x) - label.x;
+			}
+		}
         else
             label.w = header.w - 2 * style->combo.content_padding.x;
         nk_widget_text(&win->buffer, label, selected, len, &text,
