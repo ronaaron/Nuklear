@@ -216,34 +216,34 @@ nk_labelfv_wrap(struct nk_context *ctx, const char *fmt, va_list args)
 NK_API void
 nk_value_bool(struct nk_context *ctx, const char *prefix, int value)
 {
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: %s", prefix, ((value) ? "true": "false"));
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: %s", prefix, ((value) ? "true": "false"));
 }
 NK_API void
 nk_value_int(struct nk_context *ctx, const char *prefix, int value)
 {
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: %d", prefix, value);
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: %d", prefix, value);
 }
 NK_API void
 nk_value_uint(struct nk_context *ctx, const char *prefix, unsigned int value)
 {
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: %u", prefix, value);
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: %u", prefix, value);
 }
 NK_API void
 nk_value_float(struct nk_context *ctx, const char *prefix, float value)
 {
     double double_value = (double)value;
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: %.3f", prefix, double_value);
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: %.3f", prefix, double_value);
 }
 NK_API void
 nk_value_color_byte(struct nk_context *ctx, const char *p, struct nk_color c)
 {
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: (%d, %d, %d, %d)", p, c.r, c.g, c.b, c.a);
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: (%d, %d, %d, %d)", p, c.r, c.g, c.b, c.a);
 }
 NK_API void
 nk_value_color_float(struct nk_context *ctx, const char *p, struct nk_color color)
 {
     double c[4]; nk_color_dv(c, color);
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: (%.2f, %.2f, %.2f, %.2f)",
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: (%.2f, %.2f, %.2f, %.2f)",
         p, c[0], c[1], c[2], c[3]);
 }
 NK_API void
@@ -251,7 +251,7 @@ nk_value_color_hex(struct nk_context *ctx, const char *prefix, struct nk_color c
 {
     char hex[16];
     nk_color_hex_rgba(hex, color);
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: %s", prefix, hex);
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: %s", prefix, hex);
 }
 #endif
 NK_API void

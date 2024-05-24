@@ -3148,6 +3148,7 @@ enum nk_text_alignment {
     NK_TEXT_CENTERED    = NK_TEXT_ALIGN_MIDDLE|NK_TEXT_ALIGN_CENTERED,
     NK_TEXT_RIGHT       = NK_TEXT_ALIGN_MIDDLE|NK_TEXT_ALIGN_RIGHT
 };
+enum nk_text_alignment NK_TEXT_START(int rtl) ;
 NK_API void nk_text(struct nk_context*, const char*, int, nk_flags);
 NK_API void nk_text_colored(struct nk_context*, const char*, int, nk_flags, struct nk_color);
 NK_API void nk_text_wrap(struct nk_context*, const char*, int);
@@ -5690,6 +5691,7 @@ struct nk_context {
     enum nk_button_behavior button_behavior;
     struct nk_configuration_stacks stacks;
     float delta_time_seconds;
+	int rtl;
 
 /* private:
     should only be accessed if you
@@ -6061,9 +6063,9 @@ enum nk_toggle_type {
     NK_TOGGLE_OPTION
 };
 NK_LIB nk_bool nk_toggle_behavior(const struct nk_input *in, struct nk_rect select, nk_flags *state, nk_bool active);
-NK_LIB void nk_draw_checkbox(struct nk_command_buffer *out, nk_flags state, const struct nk_style_toggle *style, nk_bool active, const struct nk_rect *label, const struct nk_rect *selector, const struct nk_rect *cursors, const char *string, int len, const struct nk_user_font *font);
-NK_LIB void nk_draw_option(struct nk_command_buffer *out, nk_flags state, const struct nk_style_toggle *style, nk_bool active, const struct nk_rect *label, const struct nk_rect *selector, const struct nk_rect *cursors, const char *string, int len, const struct nk_user_font *font);
-NK_LIB nk_bool nk_do_toggle(nk_flags *state, struct nk_command_buffer *out, struct nk_rect r, nk_bool *active, const char *str, int len, enum nk_toggle_type type, const struct nk_style_toggle *style, const struct nk_input *in, const struct nk_user_font *font);
+NK_LIB void nk_draw_checkbox(struct nk_command_buffer *out, nk_flags state, const struct nk_style_toggle *style, nk_bool active, const struct nk_rect *label, const struct nk_rect *selector, const struct nk_rect *cursors, const char *string, int len, const struct nk_user_font *font, int rtl);
+NK_LIB void nk_draw_option(struct nk_command_buffer *out, nk_flags state, const struct nk_style_toggle *style, nk_bool active, const struct nk_rect *label, const struct nk_rect *selector, const struct nk_rect *cursors, const char *string, int len, const struct nk_user_font *font, int rtl);
+NK_LIB nk_bool nk_do_toggle(nk_flags *state, struct nk_command_buffer *out, struct nk_rect r, nk_bool *active, const char *str, int len, enum nk_toggle_type type, const struct nk_style_toggle *style, const struct nk_input *in, const struct nk_user_font *font, int rtl);
 
 /* progress */
 NK_LIB nk_size nk_progress_behavior(nk_flags *state, struct nk_input *in, struct nk_rect r, struct nk_rect cursor, nk_size max, nk_size value, nk_bool modifiable);
@@ -7610,6 +7612,11 @@ nk_text_calculate_text_bounds(const struct nk_user_font *font,
         *remaining = begin+text_len;
     return text_size;
 }
+
+enum nk_text_alignment NK_TEXT_START(int rtl) {
+       return rtl ? NK_TEXT_RIGHT : NK_TEXT_LEFT;
+}
+ 
 
 
 
@@ -20015,7 +20022,7 @@ nk_panel_begin(struct nk_context *ctx, const char *title, enum nk_panel_type pan
         label.h = font->height + 2 * style->window.header.label_padding.y;
         label.w = t + 2 * style->window.header.spacing.x;
         label.w = NK_CLAMP(0, label.w, header.x + header.w - label.x);
-        nk_widget_text(out, label,(const char*)title, text_len, &text, NK_TEXT_LEFT, font);}
+        nk_widget_text(out, label,(const char*)title, text_len, &text, NK_TEXT_START(ctx->rtl), font);}
     }
 
     /* draw window background */
@@ -22629,7 +22636,7 @@ nk_tree_state_base(struct nk_context *ctx, enum nk_tree_type type,
     text.text = nk_rgb_factor(style->tab.text, style->tab.color_factor);
     text.padding = nk_vec2(0,0);
     nk_widget_text(out, label, title, nk_strlen(title), &text,
-        NK_TEXT_LEFT, style->font);}
+        NK_TEXT_START(ctx->rtl), style->font);}
 
     /* increase x-axis cursor widget position pointer */
     if (*state == NK_MAXIMIZED) {
@@ -22812,9 +22819,9 @@ nk_tree_element_image_push_hashed_base(struct nk_context *ctx, enum nk_tree_type
     label.h = style->font->height;
 
     if (img) {
-        nk_do_selectable_image(&dummy, &win->buffer, label, title, title_len, NK_TEXT_LEFT,
+        nk_do_selectable_image(&dummy, &win->buffer, label, title, title_len, NK_TEXT_START(ctx->rtl),
             selected, img, &style->selectable, in, style->font);
-    } else nk_do_selectable(&dummy, &win->buffer, label, title, title_len, NK_TEXT_LEFT,
+    } else nk_do_selectable(&dummy, &win->buffer, label, title, title_len, NK_TEXT_START(ctx->rtl),
             selected, &style->selectable, in, style->font);
     }
     /* increase x-axis cursor widget position pointer */
@@ -23744,34 +23751,34 @@ nk_labelfv_wrap(struct nk_context *ctx, const char *fmt, va_list args)
 NK_API void
 nk_value_bool(struct nk_context *ctx, const char *prefix, int value)
 {
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: %s", prefix, ((value) ? "true": "false"));
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: %s", prefix, ((value) ? "true": "false"));
 }
 NK_API void
 nk_value_int(struct nk_context *ctx, const char *prefix, int value)
 {
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: %d", prefix, value);
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: %d", prefix, value);
 }
 NK_API void
 nk_value_uint(struct nk_context *ctx, const char *prefix, unsigned int value)
 {
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: %u", prefix, value);
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: %u", prefix, value);
 }
 NK_API void
 nk_value_float(struct nk_context *ctx, const char *prefix, float value)
 {
     double double_value = (double)value;
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: %.3f", prefix, double_value);
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: %.3f", prefix, double_value);
 }
 NK_API void
 nk_value_color_byte(struct nk_context *ctx, const char *p, struct nk_color c)
 {
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: (%d, %d, %d, %d)", p, c.r, c.g, c.b, c.a);
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: (%d, %d, %d, %d)", p, c.r, c.g, c.b, c.a);
 }
 NK_API void
 nk_value_color_float(struct nk_context *ctx, const char *p, struct nk_color color)
 {
     double c[4]; nk_color_dv(c, color);
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: (%.2f, %.2f, %.2f, %.2f)",
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: (%.2f, %.2f, %.2f, %.2f)",
         p, c[0], c[1], c[2], c[3]);
 }
 NK_API void
@@ -23779,7 +23786,7 @@ nk_value_color_hex(struct nk_context *ctx, const char *prefix, struct nk_color c
 {
     char hex[16];
     nk_color_hex_rgba(hex, color);
-    nk_labelf(ctx, NK_TEXT_LEFT, "%s: %s", prefix, hex);
+    nk_labelf(ctx, NK_TEXT_START(ctx->rtl), "%s: %s", prefix, hex);
 }
 #endif
 NK_API void
@@ -24650,7 +24657,7 @@ nk_draw_checkbox(struct nk_command_buffer *out,
     nk_flags state, const struct nk_style_toggle *style, nk_bool active,
     const struct nk_rect *label, const struct nk_rect *selector,
     const struct nk_rect *cursors, const char *string, int len,
-    const struct nk_user_font *font)
+    const struct nk_user_font *font,int rtl)
 {
     const struct nk_style_item *background;
     const struct nk_style_item *cursor;
@@ -24687,14 +24694,14 @@ nk_draw_checkbox(struct nk_command_buffer *out,
     text.padding.x = 0;
     text.padding.y = 0;
     text.background = style->text_background;
-    nk_widget_text(out, *label, string, len, &text, NK_TEXT_LEFT, font);
+    nk_widget_text(out, *label, string, len, &text, NK_TEXT_START(rtl), font);
 }
 NK_LIB void
 nk_draw_option(struct nk_command_buffer *out,
     nk_flags state, const struct nk_style_toggle *style, nk_bool active,
     const struct nk_rect *label, const struct nk_rect *selector,
     const struct nk_rect *cursors, const char *string, int len,
-    const struct nk_user_font *font)
+    const struct nk_user_font *font,int rtl)
 {
     const struct nk_style_item *background;
     const struct nk_style_item *cursor;
@@ -24731,14 +24738,14 @@ nk_draw_option(struct nk_command_buffer *out,
     text.padding.x = 0;
     text.padding.y = 0;
     text.background = style->text_background;
-    nk_widget_text(out, *label, string, len, &text, NK_TEXT_LEFT, font);
+    nk_widget_text(out, *label, string, len, &text, NK_TEXT_START(rtl), font);
 }
 NK_LIB nk_bool
 nk_do_toggle(nk_flags *state,
     struct nk_command_buffer *out, struct nk_rect r,
     nk_bool *active, const char *str, int len, enum nk_toggle_type type,
     const struct nk_style_toggle *style, const struct nk_input *in,
-    const struct nk_user_font *font)
+    const struct nk_user_font *font,int rtl)
 {
     int was_active;
     struct nk_rect bounds;
@@ -24767,17 +24774,23 @@ nk_do_toggle(nk_flags *state,
     select.y = r.y + r.h/2.0f - select.h/2.0f;
     select.x = r.x;
 
+	/* label behind the selector */
+    label.x = select.x + select.w + style->spacing;
+    label.y = select.y;
+    label.w = NK_MAX(r.x + r.w, label.x) - label.x;
+    label.h = select.w;
+
+	if (rtl) {
+		select.x = r.w - select.w;
+		label.w -= style->spacing;
+		label.x = select.x - label.w;
+	}
+	
     /* calculate the bounds of the cursor inside the selector */
     cursor.x = select.x + style->padding.x + style->border;
     cursor.y = select.y + style->padding.y + style->border;
     cursor.w = select.w - (2 * style->padding.x + 2 * style->border);
     cursor.h = select.h - (2 * style->padding.y + 2 * style->border);
-
-    /* label behind the selector */
-    label.x = select.x + select.w + style->spacing;
-    label.y = select.y;
-    label.w = NK_MAX(r.x + r.w, label.x) - label.x;
-    label.h = select.w;
 
     /* update selector */
     was_active = *active;
@@ -24787,9 +24800,9 @@ nk_do_toggle(nk_flags *state,
     if (style->draw_begin)
         style->draw_begin(out, style->userdata);
     if (type == NK_TOGGLE_CHECK) {
-        nk_draw_checkbox(out, *state, style, *active, &label, &select, &cursor, str, len, font);
+        nk_draw_checkbox(out, *state, style, *active, &label, &select, &cursor, str, len, font,rtl);
     } else {
-        nk_draw_option(out, *state, style, *active, &label, &select, &cursor, str, len, font);
+        nk_draw_option(out, *state, style, *active, &label, &select, &cursor, str, len, font,rtl);
     }
     if (style->draw_end)
         style->draw_end(out, style->userdata);
@@ -24825,7 +24838,7 @@ nk_check_text(struct nk_context *ctx, const char *text, int len, nk_bool active)
     if (!state) return active;
     in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     nk_do_toggle(&ctx->last_widget_state, &win->buffer, bounds, &active,
-        text, len, NK_TOGGLE_CHECK, &style->checkbox, in, style->font);
+        text, len, NK_TOGGLE_CHECK, &style->checkbox, in, style->font, ctx->rtl);
     return active;
 }
 NK_API unsigned int
@@ -24920,7 +24933,7 @@ nk_option_text(struct nk_context *ctx, const char *text, int len, nk_bool is_act
     if (!state) return (int)state;
     in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     nk_do_toggle(&ctx->last_widget_state, &win->buffer, bounds, &is_active,
-        text, len, NK_TOGGLE_OPTION, &style->option, in, style->font);
+        text, len, NK_TOGGLE_OPTION, &style->option, in, style->font, ctx->rtl);
     return is_active;
 }
 NK_API nk_bool
@@ -29026,7 +29039,7 @@ nk_combo_begin_text(struct nk_context *ctx, const char *selected, int len,
         else
             label.w = header.w - 2 * style->combo.content_padding.x;
         nk_widget_text(&win->buffer, label, selected, len, &text,
-            NK_TEXT_LEFT, ctx->style.font);
+            NK_TEXT_START(ctx->rtl), ctx->style.font);
 
         /* draw open/close button */
         if (draw_button_symbol)
@@ -29330,7 +29343,7 @@ nk_combo_begin_symbol_text(struct nk_context *ctx, const char *selected, int len
         label.y = header.y + style->combo.content_padding.y;
         label.w = (button.x - style->combo.content_padding.x) - label.x;
         label.h = header.h - 2 * style->combo.content_padding.y;
-        nk_widget_text(&win->buffer, label, selected, len, &text, NK_TEXT_LEFT, style->font);
+        nk_widget_text(&win->buffer, label, selected, len, &text, NK_TEXT_START(ctx->rtl), style->font);
     }
     return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
@@ -29530,7 +29543,7 @@ nk_combo_begin_image_text(struct nk_context *ctx, const char *selected, int len,
             label.w = (button.x - style->combo.content_padding.x) - label.x;
         else
             label.w = (header.x + header.w - style->combo.content_padding.x) - label.x;
-        nk_widget_text(&win->buffer, label, selected, len, &text, NK_TEXT_LEFT, style->font);
+        nk_widget_text(&win->buffer, label, selected, len, &text, NK_TEXT_START(ctx->rtl), style->font);
     }
     return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
@@ -29611,7 +29624,7 @@ nk_combo(struct nk_context *ctx, const char **items, int count,
     if (nk_combo_begin_label(ctx, items[selected], size)) {
         nk_layout_row_dynamic(ctx, (float)item_height, 1);
         for (i = 0; i < count; ++i) {
-            if (nk_combo_item_label(ctx, items[i], NK_TEXT_LEFT))
+            if (nk_combo_item_label(ctx, items[i], NK_TEXT_START(ctx->rtl)))
                 selected = i;
         }
         nk_combo_end(ctx);
@@ -29659,7 +29672,7 @@ nk_combo_separator(struct nk_context *ctx, const char *items_separated_by_separa
             iter = current_item;
             while (*iter && *iter != separator) iter++;
             length = (int)(iter - current_item);
-            if (nk_combo_item_text(ctx, current_item, length, NK_TEXT_LEFT))
+            if (nk_combo_item_text(ctx, current_item, length, NK_TEXT_START(ctx->rtl)))
                 selected = i;
             current_item = current_item + length + 1;
         }
@@ -29700,7 +29713,7 @@ nk_combo_callback(struct nk_context *ctx, void(*item_getter)(void*, int, const c
         nk_layout_row_dynamic(ctx, (float)item_height, 1);
         for (i = 0; i < count; ++i) {
             item_getter(userdata, i, &item);
-            if (nk_combo_item_label(ctx, item, NK_TEXT_LEFT))
+            if (nk_combo_item_label(ctx, item, NK_TEXT_START(ctx->rtl)))
                 selected = i;
         }
         nk_combo_end(ctx);
@@ -29829,7 +29842,7 @@ nk_tooltip(struct nk_context *ctx, const char *text)
     /* execute tooltip and fill with text */
     if (nk_tooltip_begin(ctx, (float)text_width)) {
         nk_layout_row_dynamic(ctx, (float)text_height, 1);
-        nk_text(ctx, text, text_len, NK_TEXT_LEFT);
+        nk_text(ctx, text, text_len, NK_TEXT_START(ctx->rtl));
         nk_tooltip_end(ctx);
     }
 }

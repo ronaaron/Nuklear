@@ -1140,3 +1140,8 @@ nk_text_calculate_text_bounds(const struct nk_user_font *font,
     return text_size;
 }
 
+enum nk_text_alignment NK_TEXT_START(int rtl) {
+       return rtl ? NK_TEXT_RIGHT : NK_TEXT_LEFT;
+}
+ 
+

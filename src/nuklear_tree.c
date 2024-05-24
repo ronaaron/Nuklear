@@ -107,7 +107,7 @@ nk_tree_state_base(struct nk_context *ctx, enum nk_tree_type type,
     text.text = nk_rgb_factor(style->tab.text, style->tab.color_factor);
     text.padding = nk_vec2(0,0);
     nk_widget_text(out, label, title, nk_strlen(title), &text,
-        NK_TEXT_LEFT, style->font);}
+        NK_TEXT_START(ctx->rtl), style->font);}
 
     /* increase x-axis cursor widget position pointer */
     if (*state == NK_MAXIMIZED) {
@@ -290,9 +290,9 @@ nk_tree_element_image_push_hashed_base(struct nk_context *ctx, enum nk_tree_type
     label.h = style->font->height;
 
     if (img) {
-        nk_do_selectable_image(&dummy, &win->buffer, label, title, title_len, NK_TEXT_LEFT,
+        nk_do_selectable_image(&dummy, &win->buffer, label, title, title_len, NK_TEXT_START(ctx->rtl),
             selected, img, &style->selectable, in, style->font);
-    } else nk_do_selectable(&dummy, &win->buffer, label, title, title_len, NK_TEXT_LEFT,
+    } else nk_do_selectable(&dummy, &win->buffer, label, title, title_len, NK_TEXT_START(ctx->rtl),
             selected, &style->selectable, in, style->font);
     }
     /* increase x-axis cursor widget position pointer */

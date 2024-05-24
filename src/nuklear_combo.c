@@ -139,7 +139,7 @@ nk_combo_begin_text(struct nk_context *ctx, const char *selected, int len,
         else
             label.w = header.w - 2 * style->combo.content_padding.x;
         nk_widget_text(&win->buffer, label, selected, len, &text,
-            NK_TEXT_LEFT, ctx->style.font);
+            NK_TEXT_START(ctx->rtl), ctx->style.font);
 
         /* draw open/close button */
         if (draw_button_symbol)
@@ -443,7 +443,7 @@ nk_combo_begin_symbol_text(struct nk_context *ctx, const char *selected, int len
         label.y = header.y + style->combo.content_padding.y;
         label.w = (button.x - style->combo.content_padding.x) - label.x;
         label.h = header.h - 2 * style->combo.content_padding.y;
-        nk_widget_text(&win->buffer, label, selected, len, &text, NK_TEXT_LEFT, style->font);
+        nk_widget_text(&win->buffer, label, selected, len, &text, NK_TEXT_START(ctx->rtl), style->font);
     }
     return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
@@ -643,7 +643,7 @@ nk_combo_begin_image_text(struct nk_context *ctx, const char *selected, int len,
             label.w = (button.x - style->combo.content_padding.x) - label.x;
         else
             label.w = (header.x + header.w - style->combo.content_padding.x) - label.x;
-        nk_widget_text(&win->buffer, label, selected, len, &text, NK_TEXT_LEFT, style->font);
+        nk_widget_text(&win->buffer, label, selected, len, &text, NK_TEXT_START(ctx->rtl), style->font);
     }
     return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
@@ -724,7 +724,7 @@ nk_combo(struct nk_context *ctx, const char **items, int count,
     if (nk_combo_begin_label(ctx, items[selected], size)) {
         nk_layout_row_dynamic(ctx, (float)item_height, 1);
         for (i = 0; i < count; ++i) {
-            if (nk_combo_item_label(ctx, items[i], NK_TEXT_LEFT))
+            if (nk_combo_item_label(ctx, items[i], NK_TEXT_START(ctx->rtl)))
                 selected = i;
         }
         nk_combo_end(ctx);
@@ -772,7 +772,7 @@ nk_combo_separator(struct nk_context *ctx, const char *items_separated_by_separa
             iter = current_item;
             while (*iter && *iter != separator) iter++;
             length = (int)(iter - current_item);
-            if (nk_combo_item_text(ctx, current_item, length, NK_TEXT_LEFT))
+            if (nk_combo_item_text(ctx, current_item, length, NK_TEXT_START(ctx->rtl)))
                 selected = i;
             current_item = current_item + length + 1;
         }
@@ -813,7 +813,7 @@ nk_combo_callback(struct nk_context *ctx, void(*item_getter)(void*, int, const c
         nk_layout_row_dynamic(ctx, (float)item_height, 1);
         for (i = 0; i < count; ++i) {
             item_getter(userdata, i, &item);
-            if (nk_combo_item_label(ctx, item, NK_TEXT_LEFT))
+            if (nk_combo_item_label(ctx, item, NK_TEXT_START(ctx->rtl)))
                 selected = i;
         }
         nk_combo_end(ctx);
