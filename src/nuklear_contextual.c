@@ -92,7 +92,7 @@ nk_contextual_item_text(struct nk_context *ctx, const char *text, int len,
     state = nk_widget_fitting(&bounds, ctx, style->contextual_button.padding);
     if (!state) return nk_false;
 
-    in = (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = /* (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : */ &ctx->input;
     if (nk_do_button_text(&ctx->last_widget_state, &win->buffer, bounds,
         text, len, alignment, NK_BUTTON_DEFAULT, &style->contextual_button, in, style->font)) {
         nk_contextual_close(ctx);
@@ -127,7 +127,7 @@ nk_contextual_item_image_text(struct nk_context *ctx, struct nk_image img,
     state = nk_widget_fitting(&bounds, ctx, style->contextual_button.padding);
     if (!state) return nk_false;
 
-    in = (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = /* (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : */ &ctx->input;
     if (nk_do_button_text_image(&ctx->last_widget_state, &win->buffer, bounds,
         img, text, len, align, NK_BUTTON_DEFAULT, &style->contextual_button, style->font, in)){
         nk_contextual_close(ctx);
@@ -163,7 +163,7 @@ nk_contextual_item_symbol_text(struct nk_context *ctx, enum nk_symbol_type symbo
     state = nk_widget_fitting(&bounds, ctx, style->contextual_button.padding);
     if (!state) return nk_false;
 
-    in = (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = /* (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : */ &ctx->input;
     if (nk_do_button_text_symbol(&ctx->last_widget_state, &win->buffer, bounds,
         symbol, text, len, align, NK_BUTTON_DEFAULT, &style->contextual_button, style->font, in)) {
         nk_contextual_close(ctx);

@@ -109,10 +109,12 @@ nk_buffer_realloc(struct nk_buffer *b, nk_size capacity, nk_size *size)
     if (!temp) return 0;
 
     *size = capacity;
+	/* ron: not needed w/ a proper realloc
     if (temp != b->memory.ptr) {
         NK_MEMCPY(temp, b->memory.ptr, buffer_size);
         b->pool.free(b->pool.userdata, b->memory.ptr);
     }
+	*/
 
     if (b->size == buffer_size) {
         /* no back buffer so just set correct size */

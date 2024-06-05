@@ -8301,10 +8301,12 @@ nk_buffer_realloc(struct nk_buffer *b, nk_size capacity, nk_size *size)
     if (!temp) return 0;
 
     *size = capacity;
+	/* ron: not needed w/ a proper realloc
     if (temp != b->memory.ptr) {
         NK_MEMCPY(temp, b->memory.ptr, buffer_size);
         b->pool.free(b->pool.userdata, b->memory.ptr);
     }
+	*/
 
     if (b->size == buffer_size) {
         /* no back buffer so just set correct size */
@@ -20076,7 +20078,7 @@ nk_panel_end(struct nk_context *ctx)
     layout = window->layout;
     style = &ctx->style;
     out = &window->buffer;
-    in = (layout->flags & NK_WINDOW_ROM || layout->flags & NK_WINDOW_NO_INPUT) ? 0 :&ctx->input;
+    in = /* (layout->flags & NK_WINDOW_ROM || layout->flags & NK_WINDOW_NO_INPUT) ? 0 : */ &ctx->input;
     if (!nk_panel_is_sub(layout->type))
         nk_push_scissor(out, nk_null_rect);
 
@@ -21360,7 +21362,7 @@ nk_contextual_item_text(struct nk_context *ctx, const char *text, int len,
     state = nk_widget_fitting(&bounds, ctx, style->contextual_button.padding);
     if (!state) return nk_false;
 
-    in = (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = /* (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : */ &ctx->input;
     if (nk_do_button_text(&ctx->last_widget_state, &win->buffer, bounds,
         text, len, alignment, NK_BUTTON_DEFAULT, &style->contextual_button, in, style->font)) {
         nk_contextual_close(ctx);
@@ -21395,7 +21397,7 @@ nk_contextual_item_image_text(struct nk_context *ctx, struct nk_image img,
     state = nk_widget_fitting(&bounds, ctx, style->contextual_button.padding);
     if (!state) return nk_false;
 
-    in = (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = /* (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : */ &ctx->input;
     if (nk_do_button_text_image(&ctx->last_widget_state, &win->buffer, bounds,
         img, text, len, align, NK_BUTTON_DEFAULT, &style->contextual_button, style->font, in)){
         nk_contextual_close(ctx);
@@ -21431,7 +21433,7 @@ nk_contextual_item_symbol_text(struct nk_context *ctx, enum nk_symbol_type symbo
     state = nk_widget_fitting(&bounds, ctx, style->contextual_button.padding);
     if (!state) return nk_false;
 
-    in = (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = /* (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : */ &ctx->input;
     if (nk_do_button_text_symbol(&ctx->last_widget_state, &win->buffer, bounds,
         symbol, text, len, align, NK_BUTTON_DEFAULT, &style->contextual_button, style->font, in)) {
         nk_contextual_close(ctx);
@@ -23153,8 +23155,9 @@ nk_list_view_begin(struct nk_context *ctx, struct nk_list_view *view,
     layout = win->layout;
 
     view->total_height = row_height * NK_MAX(row_count,1);
-    view->begin = (int)NK_MAX(((float)view->scroll_value / (float)row_height), 0.0f);
-    view->count = (int)NK_MAX(nk_iceilf((layout->clip.h)/(float)row_height),0);
+	/* ron: fix over-statement of list bounds */
+    view->begin = (int)NK_MAX(floor(((float)view->scroll_value / (float)row_height)), 0.0f);
+    view->count = (int)NK_MAX(floor((layout->clip.h)/(float)row_height),0);
     view->count = NK_MIN(view->count, row_count - view->begin);
     view->end = view->begin + view->count;
     view->ctx = ctx;
@@ -28967,7 +28970,7 @@ nk_combo_begin_text(struct nk_context *ctx, const char *selected, int len,
     if (s == NK_WIDGET_INVALID)
         return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = /*(win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0:*/ &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 
@@ -29087,7 +29090,7 @@ nk_combo_begin_color(struct nk_context *ctx, struct nk_color color, struct nk_ve
     if (s == NK_WIDGET_INVALID)
         return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = /* (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: */ &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 
@@ -29180,7 +29183,7 @@ nk_combo_begin_symbol(struct nk_context *ctx, enum nk_symbol_type symbol, struct
     if (s == NK_WIDGET_INVALID)
         return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = /* (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0:*/ &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 
@@ -29276,7 +29279,7 @@ nk_combo_begin_symbol_text(struct nk_context *ctx, const char *selected, int len
     s = nk_widget(&header, ctx);
     if (!s) return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = /* (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: */ &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 
@@ -29381,7 +29384,7 @@ nk_combo_begin_image(struct nk_context *ctx, struct nk_image img, struct nk_vec2
     if (s == NK_WIDGET_INVALID)
         return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = /* (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: */ &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 
@@ -29473,7 +29476,7 @@ nk_combo_begin_image_text(struct nk_context *ctx, const char *selected, int len,
     s = nk_widget(&header, ctx);
     if (!s) return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = /* (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: */ &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 

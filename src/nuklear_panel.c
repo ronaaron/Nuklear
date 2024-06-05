@@ -347,7 +347,7 @@ nk_panel_end(struct nk_context *ctx)
     layout = window->layout;
     style = &ctx->style;
     out = &window->buffer;
-    in = (layout->flags & NK_WINDOW_ROM || layout->flags & NK_WINDOW_NO_INPUT) ? 0 :&ctx->input;
+    in = /* (layout->flags & NK_WINDOW_ROM || layout->flags & NK_WINDOW_NO_INPUT) ? 0 : */ &ctx->input;
     if (!nk_panel_is_sub(layout->type))
         nk_push_scissor(out, nk_null_rect);
 
