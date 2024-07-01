@@ -1220,7 +1220,7 @@ static void nk_reverse_rtl(nk_rune *unicode, int start, int end)
 	while (start < end)
 	{
 		/* scan to number */
-		nk_rune rune = unicode[start];
+		rune = unicode[start];
 		if (nk_num(rune))
 		{
 			os = start;

@@ -319,6 +319,10 @@ enum nk_symbol_type {
     NK_SYMBOL_TRIANGLE_RIGHT,
     NK_SYMBOL_PLUS,
     NK_SYMBOL_MINUS,
+    NK_SYMBOL_TRIANGLE_UP_OUTLINE,
+    NK_SYMBOL_TRIANGLE_DOWN_OUTLINE,
+    NK_SYMBOL_TRIANGLE_LEFT_OUTLINE,
+    NK_SYMBOL_TRIANGLE_RIGHT_OUTLINE,
     NK_SYMBOL_MAX
 };
 /* =============================================================================

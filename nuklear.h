@@ -541,6 +541,10 @@ enum nk_symbol_type {
     NK_SYMBOL_TRIANGLE_RIGHT,
     NK_SYMBOL_PLUS,
     NK_SYMBOL_MINUS,
+    NK_SYMBOL_TRIANGLE_UP_OUTLINE,
+    NK_SYMBOL_TRIANGLE_DOWN_OUTLINE,
+    NK_SYMBOL_TRIANGLE_LEFT_OUTLINE,
+    NK_SYMBOL_TRIANGLE_RIGHT_OUTLINE,
     NK_SYMBOL_MAX
 };
 /* =============================================================================
@@ -10692,7 +10696,7 @@ static void nk_reverse_rtl(nk_rune *unicode, int start, int end)
 	while (start < end)
 	{
 		/* scan to number */
-		nk_rune rune = unicode[start];
+		rune = unicode[start];
 		if (nk_num(rune))
 		{
 			os = start;
@@ -24002,6 +24006,19 @@ nk_draw_symbol(struct nk_command_buffer *out, enum nk_symbol_type type,
         nk_triangle_from_direction(points, content, 0, 0, heading);
         nk_fill_triangle(out, points[0].x, points[0].y, points[1].x, points[1].y,
             points[2].x, points[2].y, foreground);
+    } break;
+    case NK_SYMBOL_TRIANGLE_UP_OUTLINE:
+    case NK_SYMBOL_TRIANGLE_DOWN_OUTLINE:
+    case NK_SYMBOL_TRIANGLE_LEFT_OUTLINE:
+    case NK_SYMBOL_TRIANGLE_RIGHT_OUTLINE: {
+        enum nk_heading heading;
+        struct nk_vec2 points[3];
+        heading = (type == NK_SYMBOL_TRIANGLE_RIGHT_OUTLINE) ? NK_RIGHT :
+            (type == NK_SYMBOL_TRIANGLE_LEFT_OUTLINE) ? NK_LEFT:
+            (type == NK_SYMBOL_TRIANGLE_UP_OUTLINE) ? NK_UP: NK_DOWN;
+        nk_triangle_from_direction(points, content, 0, 0, heading);
+        nk_stroke_triangle(out, points[0].x, points[0].y, points[1].x, points[1].y,
+            points[2].x, points[2].y, border_width, foreground);
     } break;
     default:
     case NK_SYMBOL_NONE:
