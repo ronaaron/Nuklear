@@ -41,6 +41,7 @@ nk_draw_list_setup(struct nk_draw_list *canvas, const struct nk_convert_config *
     canvas->shape_AA = shape_aa;
     canvas->clip_rect = nk_null_rect;
 
+    canvas->cmd_offset = 0;
     canvas->element_count = 0;
     canvas->vertex_count = 0;
     canvas->cmd_offset = 0;
@@ -203,7 +204,9 @@ nk_draw_list_push_image(struct nk_draw_list *list, nk_handle texture)
         #ifdef NK_INCLUDE_COMMAND_USERDATA
             || prev->userdata.id != list->userdata.id
         #endif
-        ) nk_draw_list_push_command(list, prev->clip_rect, texture);
+                ) {
+            nk_draw_list_push_command(list, prev->clip_rect, texture);
+        }
     }
 }
 #ifdef NK_INCLUDE_COMMAND_USERDATA

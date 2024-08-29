@@ -1259,7 +1259,7 @@ NK_API const struct nk_draw_command* nk__draw_next(const struct nk_draw_command*
 /// #### nk_collapse_states
 /// State           | Description
 /// ----------------|-----------------------------------------------------------
-/// __NK_MINIMIZED__| UI section is collased and not visible until maximized
+/// __NK_MINIMIZED__| UI section is collapsed and not visible until maximized
 /// __NK_MAXIMIZED__| UI section is extended and visible until minimized
 /// <br /><br />
 */
@@ -1800,6 +1800,18 @@ NK_API void nk_window_show(struct nk_context*, nk_hash id, enum nk_show_states);
 /// __cond__    | condition that has to be met to actually commit the visbility state change
 */
 NK_API void nk_window_show_if(struct nk_context*, nk_hash id, enum nk_show_states, int cond);
+/*/// #### nk_window_show_if
+/// Line for visual separation. Draws a line with thickness determined by the current row height.
+/// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
+/// void nk_rule_horizontal(struct nk_context *ctx, struct nk_color color, NK_BOOL rounding)
+/// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+///
+/// Parameter       | Description
+/// ----------------|-------------------------------------------------------
+/// __ctx__         | Must point to an previously initialized `nk_context` struct
+/// __color__       | Color of the horizontal line
+/// __rounding__    | Whether or not to make the line round
+*/
 NK_API void nk_rule_horizontal(struct nk_context *ctx, struct nk_color color, nk_bool rounding);
 /* =============================================================================
  *
@@ -1951,7 +1963,7 @@ NK_API void nk_rule_horizontal(struct nk_context *ctx, struct nk_color color, nk
 ///     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
 ///     if (nk_begin_xxx(...) {
 ///         // two rows with height: 30 composed of two widgets with width 60 and 40
-///         const float size[] = {60,40};
+///         const float ratio[] = {60,40};
 ///         nk_layout_row(ctx, NK_STATIC, 30, 2, ratio);
 ///         nk_widget(...);
 ///         nk_widget(...);
@@ -3011,6 +3023,15 @@ NK_API float nk_slide_float(struct nk_context*, float min, float val, float max,
 NK_API int nk_slide_int(struct nk_context*, int min, int val, int max, int step);
 NK_API nk_bool nk_slider_float(struct nk_context*, float min, float *val, float max, float step);
 NK_API nk_bool nk_slider_int(struct nk_context*, int min, int *val, int max, int step);
+
+/* =============================================================================
+ *
+ *                                   KNOB
+ *
+ * ============================================================================= */
+NK_API nk_bool nk_knob_float(struct nk_context*, float min, float *val, float max, float step, enum nk_heading zero_direction, float dead_zone_degrees);
+NK_API nk_bool nk_knob_int(struct nk_context*, int min, int *val, int max, int step, enum nk_heading zero_direction, float dead_zone_degrees);
+
 /* =============================================================================
  *
  *                                  PROGRESSBAR
@@ -3400,6 +3421,10 @@ enum nk_style_colors {
     NK_COLOR_SCROLLBAR_CURSOR_HOVER,
     NK_COLOR_SCROLLBAR_CURSOR_ACTIVE,
     NK_COLOR_TAB_HEADER,
+    NK_COLOR_KNOB,
+    NK_COLOR_KNOB_CURSOR,
+    NK_COLOR_KNOB_CURSOR_HOVER,
+    NK_COLOR_KNOB_CURSOR_ACTIVE,
     NK_COLOR_COUNT
 };
 enum nk_style_cursor {
@@ -4833,6 +4858,39 @@ struct nk_style_slider {
     void(*draw_end)(struct nk_command_buffer*, nk_handle);
 };
 
+struct nk_style_knob {
+    /* background */
+    struct nk_style_item normal;
+    struct nk_style_item hover;
+    struct nk_style_item active;
+    struct nk_color border_color;
+
+    /* knob */
+    struct nk_color knob_normal;
+    struct nk_color knob_hover;
+    struct nk_color knob_active;
+    struct nk_color knob_border_color;
+
+    /* cursor */
+    struct nk_color cursor_normal;
+    struct nk_color cursor_hover;
+    struct nk_color cursor_active;
+
+    /* properties */
+    float border;
+    float knob_border;
+    struct nk_vec2 padding;
+    struct nk_vec2 spacing;
+    float cursor_width;
+    float color_factor;
+    float disabled_factor;
+
+    /* optional user callbacks */
+    nk_handle userdata;
+    void(*draw_begin)(struct nk_command_buffer*, nk_handle);
+    void(*draw_end)(struct nk_command_buffer*, nk_handle);
+};
+
 struct nk_style_progress {
     /* background */
     struct nk_style_item normal;
@@ -5119,6 +5177,7 @@ struct nk_style {
     struct nk_style_toggle checkbox;
     struct nk_style_selectable selectable;
     struct nk_style_slider slider;
+    struct nk_style_knob knob;
     struct nk_style_progress progress;
     struct nk_style_property property;
     struct nk_style_edit edit;
@@ -5509,6 +5568,7 @@ struct nk_context {
  *                          MATH
  * =============================================================== */
 #define NK_PI 3.141592654f
+#define NK_PI_HALF 1.570796326f
 #define NK_UTF_INVALID 0xFFFD
 #define NK_MAX_FLOAT_PRECISION 2
 
@@ -5562,8 +5622,6 @@ struct nk_context {
 #else
 #define NK_OFFSETOF(st,m) ((nk_ptr)&(((st*)0)->m))
 #endif
-#define NK_CONTAINER_OF(ptr,type,member)\
-    (type*)((void*)((char*)(1 ? (ptr): &((type*)0)->member) - NK_OFFSETOF(type, member)))
 
 #ifdef __cplusplus
 }
@@ -5579,7 +5637,7 @@ template<typename T> struct nk_alignof{struct Big {T x; char c;}; enum {
 #elif defined(_MSC_VER)
 #define NK_ALIGNOF(t) (__alignof(t))
 #else
-#define NK_ALIGNOF(t) ((char*)(&((struct {char c; t _h;}*)0)->_h) - (char*)0)
+#define NK_ALIGNOF(t) NK_OFFSETOF(struct {char c; t _h;}, _h)
 #endif
 
 #define NK_CONTAINER_OF(ptr,type,member)\
