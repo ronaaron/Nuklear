@@ -601,7 +601,7 @@ nk_layout_widget_space(struct nk_rect *bounds, const struct nk_context *ctx,
     panel_space = nk_layout_row_calculate_usable_space(&ctx->style, layout->type,
                                             layout->bounds.w, layout->row.columns);
 
-    #define NK_FRAC(x) (x - (float)(int)x) /* will be used to remove fookin gaps */
+    #define NK_FRAC(x) (x - (float)(int)nk_roundf(x)) /* will be used to remove fookin gaps */
     /* calculate the width of one item inside the current layout space */
     switch (layout->row.type) {
     case NK_LAYOUT_DYNAMIC_FIXED: {
@@ -760,4 +760,9 @@ nk_layout_peek(struct nk_rect *bounds, struct nk_context *ctx)
     layout->at_y = y;
     layout->row.index = index;
 }
-
+NK_API void
+nk_spacer(struct nk_context *ctx )
+{
+    struct nk_rect dummy_rect = { 0, 0, 0, 0 };
+    nk_panel_alloc_space( &dummy_rect, ctx );
+}
