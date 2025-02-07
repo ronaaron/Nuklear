@@ -4654,7 +4654,7 @@ struct nk_command_text {
     unsigned short w, h;
     float height;
     int length;
-    char string[1];
+    char string[2];
 };
 
 enum nk_command_clipping {
