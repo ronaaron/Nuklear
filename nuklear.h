@@ -20336,13 +20336,13 @@ nk_panel_end(struct nk_context *ctx)
                     scroll_has_scrolling = nk_true;
                 }
             }
-        } else if (!nk_panel_is_sub(layout->type)) {
+        } else {
             /* window mouse wheel scrolling */
             scroll_has_scrolling = (window == ctx->active) && layout->has_scrolling;
             if (in && (in->mouse.scroll_delta.y > 0 || in->mouse.scroll_delta.x > 0) && scroll_has_scrolling)
                 window->scrolled = nk_true;
             else window->scrolled = nk_false;
-        } else scroll_has_scrolling = nk_false;
+        }
 
         {
             /* vertical scrollbar */
@@ -20448,21 +20448,15 @@ nk_panel_end(struct nk_context *ctx)
 
 			/* ronaaron: merge fix from MikemathuKE # 51a4bc8b0787b1a6cc9fa5144d256642f88d9642 */
             if (left_mouse_down && left_mouse_click_in_scaler) {
-                /* dragging in x-direction  */
+                float delta_x = in->mouse.delta.x;
 				if (layout->flags & NK_WINDOW_SCALE_LEFT) {
-					if (window->bounds.w - in->mouse.delta.x >= window_size.x) {
-						if ((in->mouse.delta.x < 0) || (in->mouse.delta.x > 0 && in->mouse.pos.x >= scaler.x)) {
+                    delta_x = -delta_x;
 							window->bounds.x += in->mouse.delta.x;
-							window->bounds.w -= in->mouse.delta.x;
-							scaler.x += in->mouse.delta.x;
 						}
-                    }
-                } else {
-					if (window->bounds.w + in->mouse.delta.x >= window_size.x) {
-						if ((in->mouse.delta.x < 0) || (in->mouse.delta.x > 0 && in->mouse.pos.x >= scaler.x)) {
-							window->bounds.w += in->mouse.delta.x;
-							scaler.x += in->mouse.delta.x;
-						}
+                /* dragging in x-direction  */
+                if (window->bounds.w + delta_x >= window_size.x) {
+                    if ((delta_x < 0) || (delta_x > 0 && in->mouse.pos.x >= scaler.x)) {
+                        window->bounds.w = window->bounds.w + delta_x;
 						scaler.x += in->mouse.delta.x;
 					}
 				}
@@ -25868,16 +25862,17 @@ nk_knob_behavior(nk_flags *state, struct nk_input *in,
     /* knob widget state */
     if (nk_input_is_mouse_hovering_rect(in, bounds)){
         *state = NK_WIDGET_STATE_HOVERED;
-        if (in) {
             /* handle scroll and arrow inputs */
             if (in->mouse.scroll_delta.y > 0 ||
-               (in->keyboard.keys[NK_KEY_UP].down && in->keyboard.keys[NK_KEY_UP].clicked))
+           (in->keyboard.keys[NK_KEY_UP].down && in->keyboard.keys[NK_KEY_UP].clicked)) {
                 knob_value += knob_step;
+        }
 
             if (in->mouse.scroll_delta.y < 0 ||
-               (in->keyboard.keys[NK_KEY_DOWN].down && in->keyboard.keys[NK_KEY_DOWN].clicked))
+           (in->keyboard.keys[NK_KEY_DOWN].down && in->keyboard.keys[NK_KEY_DOWN].clicked)) {
                 knob_value -= knob_step;
         }
+        in->mouse.scroll_delta.y = 0;
         knob_value = NK_CLAMP(knob_min, knob_value, knob_max);
     }
     if (*state & NK_WIDGET_STATE_HOVER &&
@@ -30475,6 +30470,8 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 ///   - [y]: Minor version with non-breaking API and library changes
 ///   - [z]: Patch version with no direct changes to the API
 ///
+/// - 2025/03/05 (4.12.5) - Fix scrolling knob also scrolling parent window, remove dead code
+/// - 2024/12/11 (4.12.4) - Fix array subscript [0, 0] is outside array bounds of ‘char[1]’
 /// - 2024/12/11 (4.12.3) - Fix border color for property widgets
 /// - 2024/11/20 (4.12.2) - Fix int/float type conversion warnings in `nk_roundf`
 /// - 2024/03/07 (4.12.1) - Fix bitwise operations warnings in C++20
@@ -30624,7 +30621,7 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 ///                        dynamic and static widgets.
 /// - 2016/12/31 (1.30.0) - Extended scrollbar offset from 16-bit to 32-bit.
 /// - 2016/12/31 (1.29.2) - Fixed closing window bug of minimized windows.
-/// - 2016/12/03 (1.29.1) - Fixed wrapped text with no seperator and C89 error.
+/// - 2016/12/03 (1.29.1) - Fixed wrapped text with no separator and C89 error.
 /// - 2016/12/03 (1.29.0) - Changed text wrapping to process words not characters.
 /// - 2016/11/22 (1.28.6) - Fixed window minimized closing bug.
 /// - 2016/11/19 (1.28.5) - Fixed abstract combo box closing behavior.
@@ -30762,7 +30759,7 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 ///                        precision.
 /// - 2016/08/08 (1.07.2) - Fixed compiling error without define `NK_INCLUDE_FIXED_TYPE`.
 /// - 2016/08/08 (1.07.1) - Fixed possible floating point error inside `nk_widget` leading
-///                        to wrong wiget width calculation which results in widgets falsely
+///                        to wrong widget width calculation which results in widgets falsely
 ///                        becoming tagged as not inside window and cannot be accessed.
 /// - 2016/08/08 (1.07.0) - Nuklear now differentiates between hiding a window (NK_WINDOW_HIDDEN) and
 ///                        closing a window (NK_WINDOW_CLOSED). A window can be hidden/shown

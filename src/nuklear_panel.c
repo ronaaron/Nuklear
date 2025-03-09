@@ -440,13 +440,13 @@ nk_panel_end(struct nk_context *ctx)
                     scroll_has_scrolling = nk_true;
                 }
             }
-        } else if (!nk_panel_is_sub(layout->type)) {
+        } else {
             /* window mouse wheel scrolling */
             scroll_has_scrolling = (window == ctx->active) && layout->has_scrolling;
             if (in && (in->mouse.scroll_delta.y > 0 || in->mouse.scroll_delta.x > 0) && scroll_has_scrolling)
                 window->scrolled = nk_true;
             else window->scrolled = nk_false;
-        } else scroll_has_scrolling = nk_false;
+        }
 
         {
             /* vertical scrollbar */
@@ -552,21 +552,15 @@ nk_panel_end(struct nk_context *ctx)
 
 			/* ronaaron: merge fix from MikemathuKE # 51a4bc8b0787b1a6cc9fa5144d256642f88d9642 */
             if (left_mouse_down && left_mouse_click_in_scaler) {
-                /* dragging in x-direction  */
+                float delta_x = in->mouse.delta.x;
 				if (layout->flags & NK_WINDOW_SCALE_LEFT) {
-					if (window->bounds.w - in->mouse.delta.x >= window_size.x) {
-						if ((in->mouse.delta.x < 0) || (in->mouse.delta.x > 0 && in->mouse.pos.x >= scaler.x)) {
+                    delta_x = -delta_x;
 							window->bounds.x += in->mouse.delta.x;
-							window->bounds.w -= in->mouse.delta.x;
-							scaler.x += in->mouse.delta.x;
 						}
-                    }
-                } else {
-					if (window->bounds.w + in->mouse.delta.x >= window_size.x) {
-						if ((in->mouse.delta.x < 0) || (in->mouse.delta.x > 0 && in->mouse.pos.x >= scaler.x)) {
-							window->bounds.w += in->mouse.delta.x;
-							scaler.x += in->mouse.delta.x;
-						}
+                /* dragging in x-direction  */
+                if (window->bounds.w + delta_x >= window_size.x) {
+                    if ((delta_x < 0) || (delta_x > 0 && in->mouse.pos.x >= scaler.x)) {
+                        window->bounds.w = window->bounds.w + delta_x;
 						scaler.x += in->mouse.delta.x;
 					}
 				}
