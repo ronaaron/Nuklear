@@ -9060,6 +9060,7 @@ nk_str_free(struct nk_str *str)
  *                          DRAW
  *
  * ===============================================================*/
+int nk_do_clipping = 1;
 NK_LIB void
 nk_command_buffer_init(struct nk_command_buffer *cb,
     struct nk_buffer *b, enum nk_command_clipping clip)
@@ -9068,7 +9069,7 @@ nk_command_buffer_init(struct nk_command_buffer *cb,
     NK_ASSERT(b);
     if (!cb || !b) return;
     cb->base = b;
-    cb->use_clipping = (int)clip;
+    cb->use_clipping = nk_do_clipping ? (int)clip : 0;
     cb->begin = b->allocated;
     cb->end = b->allocated;
     cb->last = b->allocated;
