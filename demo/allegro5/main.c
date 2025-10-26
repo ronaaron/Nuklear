@@ -29,32 +29,67 @@
 #define MAX(a,b) ((a) < (b) ? (b) : (a))
 #define LEN(a) (sizeof(a)/sizeof(a)[0])
 
+
 /* ===============================================================
  *
  *                          EXAMPLE
  *
  * ===============================================================*/
 /* This are some code examples to provide a small overview of what can be
- * done with this library. To try out an example uncomment the include
- * and the corresponding function. */
-/*#include "../style.c"*/
-/*#include "../calculator.c"*/
-#include "../overview.c"
-/*#include "../node_editor.c"*/
+ * done with this library. To try out an example uncomment the defines */
+/*#define INCLUDE_ALL */
+/*#define INCLUDE_STYLE */
+/*#define INCLUDE_CALCULATOR */
+/*#define INCLUDE_CANVAS */
+#define INCLUDE_OVERVIEW
+/*#define INCLUDE_CONFIGURATOR */
+/*#define INCLUDE_NODE_EDITOR */
+
+#ifdef INCLUDE_ALL
+  #define INCLUDE_STYLE
+  #define INCLUDE_CALCULATOR
+  #define INCLUDE_CANVAS
+  #define INCLUDE_OVERVIEW
+  #define INCLUDE_CONFIGURATOR
+  #define INCLUDE_NODE_EDITOR
+#endif
+
+#ifdef INCLUDE_STYLE
+  #include "../../demo/common/style.c"
+#endif
+#ifdef INCLUDE_CALCULATOR
+  #include "../../demo/common/calculator.c"
+#endif
+#ifdef INCLUDE_CANVAS
+  #include "../../demo/common/canvas.c"
+#endif
+#ifdef INCLUDE_OVERVIEW
+  #include "../../demo/common/overview.c"
+#endif
+#ifdef INCLUDE_CONFIGURATOR
+  #include "../../demo/common/style_configurator.c"
+#endif
+#ifdef INCLUDE_NODE_EDITOR
+  #include "../../demo/common/node_editor.c"
+#endif
 
 /* ===============================================================
  *
  *                          DEMO
  *
  * ===============================================================*/
-static void error_callback(int e, const char *d)
-{printf("Error %d: %s\n", e, d);}
-
 int main(void)
 {
     /* Platform */
     ALLEGRO_DISPLAY *display = NULL;
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
+    NkAllegro5Font *font;
+    struct nk_context *ctx;
+
+    #ifdef INCLUDE_CONFIGURATOR
+    static struct nk_color color_table[NK_COLOR_COUNT];
+    memcpy(color_table, nk_default_color_style, sizeof(color_table));
+    #endif
 
     if (!al_init()) {
         fprintf(stdout, "failed to initialize allegro5!\n");
@@ -85,25 +120,18 @@ int main(void)
     al_register_event_source(event_queue, al_get_mouse_event_source());
     al_register_event_source(event_queue, al_get_keyboard_event_source());
 
-    NkAllegro5Font *font;
-    font = nk_allegro5_font_create_from_file("../../../extra_font/Roboto-Regular.ttf", 12, 0);
-    struct nk_context *ctx;
+    font = nk_allegro5_font_create_from_file("../../extra_font/Roboto-Regular.ttf", 12, 0);
 
     ctx = nk_allegro5_init(font, display, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-    /* style.c */
-    /*set_style(ctx, THEME_WHITE);*/
-    /*set_style(ctx, THEME_RED);*/
-    /*set_style(ctx, THEME_BLUE);*/
-    /*set_style(ctx, THEME_DARK);*/
-
     while(1)
     {
+        bool get_event;
         ALLEGRO_EVENT ev;
         ALLEGRO_TIMEOUT timeout;
         al_init_timeout(&timeout, 0.06);
 
-        bool get_event = al_wait_for_event_until(event_queue, &ev, &timeout);
+        get_event = al_wait_for_event_until(event_queue, &ev, &timeout);
 
         if (get_event && ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
             break;
@@ -141,9 +169,21 @@ int main(void)
         nk_end(ctx);
 
         /* -------------- EXAMPLES ---------------- */
-        /*calculator(ctx);*/
-        overview(ctx);
-        /*node_editor(ctx);*/
+        #ifdef INCLUDE_CALCULATOR
+          calculator(ctx);
+        #endif
+        #ifdef INCLUDE_CANVAS
+          canvas(ctx);
+        #endif
+        #ifdef INCLUDE_OVERVIEW
+          overview(ctx);
+        #endif
+        #ifdef INCLUDE_CONFIGURATOR
+          style_configurator(ctx, color_table);
+        #endif
+        #ifdef INCLUDE_NODE_EDITOR
+          node_editor(ctx);
+        #endif
         /* ----------------------------------------- */
 
         /* Draw */

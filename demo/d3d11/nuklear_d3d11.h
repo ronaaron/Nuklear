@@ -41,6 +41,7 @@ NK_API void nk_d3d11_shutdown(void);
 #define COBJMACROS
 #include <d3d11.h>
 
+#include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
 #include <float.h>
@@ -61,7 +62,7 @@ static struct
     struct nk_font_atlas atlas;
     struct nk_buffer cmds;
 
-    struct nk_draw_null_texture null;
+    struct nk_draw_null_texture tex_null;
     unsigned int max_vertex_buffer;
     unsigned int max_index_buffer;
 
@@ -137,7 +138,7 @@ nk_d3d11_render(ID3D11DeviceContext *context, enum nk_anti_aliasing AA)
         config.circle_segment_count = 22;
         config.curve_segment_count = 22;
         config.arc_segment_count = 22;
-        config.null = d3d11.null;
+        config.tex_null = d3d11.tex_null;
 
         {/* setup buffers to load vertices and elements */
         struct nk_buffer vbuf, ibuf;
@@ -179,11 +180,15 @@ nk_d3d11_get_projection_matrix(int width, int height, float *result)
     const float B = (float)height;
     float matrix[4][4] =
     {
-        {    2.0f / (R - L),              0.0f, 0.0f, 0.0f },
-        {              0.0f,    2.0f / (T - B), 0.0f, 0.0f },
-        {              0.0f,              0.0f, 0.5f, 0.0f },
-        { (R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f },
+        { 0.0f, 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.5f, 0.0f },
+        { 0.0f, 0.0f, 0.5f, 1.0f },
     };
+    matrix[0][0] = 2.0f / (R - L);
+    matrix[1][1] = 2.0f / (T - B);
+    matrix[3][0] = (R + L) / (L - R);
+    matrix[3][1] = (T + B) / (B - T);
     memcpy(result, matrix, sizeof(matrix));
 }
 
@@ -204,6 +209,7 @@ nk_d3d11_resize(ID3D11DeviceContext *context, int width, int height)
 NK_API int
 nk_d3d11_handle_event(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
+    static int insert_toggle = 0;
     switch (msg)
     {
     case WM_KEYDOWN:
@@ -227,11 +233,20 @@ nk_d3d11_handle_event(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
             return 1;
 
         case VK_RETURN:
+        case VK_SEPARATOR:
             nk_input_key(&d3d11.ctx, NK_KEY_ENTER, down);
             return 1;
 
         case VK_TAB:
             nk_input_key(&d3d11.ctx, NK_KEY_TAB, down);
+            return 1;
+
+        case VK_UP:
+            nk_input_key(&d3d11.ctx, NK_KEY_UP, down);
+            return 1;
+
+        case VK_DOWN:
+            nk_input_key(&d3d11.ctx, NK_KEY_DOWN, down);
             return 1;
 
         case VK_LEFT:
@@ -269,6 +284,48 @@ nk_d3d11_handle_event(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
         case VK_PRIOR:
             nk_input_key(&d3d11.ctx, NK_KEY_SCROLL_UP, down);
             return 1;
+
+        case VK_ESCAPE:
+            nk_input_key(&d3d11.ctx, NK_KEY_TEXT_RESET_MODE, down);
+            return 1;
+
+        case VK_INSERT:
+        /* Only switch on release to avoid repeat issues
+         * kind of confusing since we have to negate it but we're already
+         * hacking it since Nuklear treats them as two separate keys rather
+         * than a single toggle state */
+            if (!down) {
+                insert_toggle = !insert_toggle;
+                if (insert_toggle) {
+                    nk_input_key(&d3d11.ctx, NK_KEY_TEXT_INSERT_MODE, !down);
+                    /* nk_input_key(&d3d11.ctx, NK_KEY_TEXT_REPLACE_MODE, down); */
+                } else {
+                    nk_input_key(&d3d11.ctx, NK_KEY_TEXT_REPLACE_MODE, !down);
+                    /* nk_input_key(&d3d11.ctx, NK_KEY_TEXT_INSERT_MODE, down); */
+                }
+            }
+            return 1;
+
+        case 'A':
+            if (ctrl) {
+                nk_input_key(&d3d11.ctx, NK_KEY_TEXT_SELECT_ALL, down);
+                return 1;
+            }
+            break;
+
+        case 'B':
+            if (ctrl) {
+                nk_input_key(&d3d11.ctx, NK_KEY_TEXT_LINE_START, down);
+                return 1;
+            }
+            break;
+
+        case 'E':
+            if (ctrl) {
+                nk_input_key(&d3d11.ctx, NK_KEY_TEXT_LINE_END, down);
+                return 1;
+            }
+            break;
 
         case 'C':
             if (ctrl) {
@@ -369,7 +426,7 @@ nk_d3d11_clipboard_paste(nk_handle usr, struct nk_text_edit *edit)
     (void)usr;
     if (IsClipboardFormatAvailable(CF_UNICODETEXT) && OpenClipboard(NULL))
     {
-        HGLOBAL mem = GetClipboardData(CF_UNICODETEXT); 
+        HGLOBAL mem = GetClipboardData(CF_UNICODETEXT);
         if (mem)
         {
             SIZE_T size = GlobalSize(mem) - 1;
@@ -389,7 +446,7 @@ nk_d3d11_clipboard_paste(nk_handle usr, struct nk_text_edit *edit)
                             free(utf8);
                         }
                     }
-                    GlobalUnlock(mem); 
+                    GlobalUnlock(mem);
                 }
             }
         }
@@ -415,7 +472,7 @@ nk_d3d11_clipboard_copy(nk_handle usr, const char *text, int len)
                     MultiByteToWideChar(CP_UTF8, 0, text, len, wstr, wsize);
                     wstr[wsize] = 0;
                     GlobalUnlock(mem);
-                    SetClipboardData(CF_UNICODETEXT, mem); 
+                    SetClipboardData(CF_UNICODETEXT, mem);
                 }
             }
         }
@@ -599,7 +656,7 @@ nk_d3d11_font_stash_end(void)
     assert(SUCCEEDED(hr));}
     ID3D11Texture2D_Release(font_texture);}
 
-    nk_font_atlas_end(&d3d11.atlas, nk_handle_ptr(d3d11.font_texture_view), &d3d11.null);
+    nk_font_atlas_end(&d3d11.atlas, nk_handle_ptr(d3d11.font_texture_view), &d3d11.tex_null);
     if (d3d11.atlas.default_font)
         nk_style_set_font(&d3d11.ctx, &d3d11.atlas.default_font->handle);
 }

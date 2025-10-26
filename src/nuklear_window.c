@@ -423,7 +423,7 @@ nk_window_is_hovered(struct nk_context *ctx)
         return 0;
     else {
         struct nk_rect actual_bounds = ctx->current->bounds;
-        if (ctx->begin->flags & NK_WINDOW_MINIMIZED) {
+        if (ctx->current->flags & NK_WINDOW_MINIMIZED) {
             actual_bounds.h = ctx->current->layout->header_height;
         }
         return nk_input_is_mouse_hovering_rect(&ctx->input, actual_bounds);
@@ -534,7 +534,6 @@ nk_window_set_bounds(struct nk_context *ctx,
     if (!ctx) return;
     win = nk_window_find(ctx, id);
     if (!win) return;
-    NK_ASSERT(ctx->current != win && "You cannot update a currently in procecss window");
     win->bounds = bounds;
 }
 NK_API void

@@ -33,27 +33,37 @@
 /*#define INCLUDE_ALL */
 /*#define INCLUDE_STYLE */
 /*#define INCLUDE_CALCULATOR */
-/*#define INCLUDE_OVERVIEW */
+/*#define INCLUDE_CANVAS */
+#define INCLUDE_OVERVIEW
+/*#define INCLUDE_CONFIGURATOR */
 /*#define INCLUDE_NODE_EDITOR */
 
 #ifdef INCLUDE_ALL
   #define INCLUDE_STYLE
   #define INCLUDE_CALCULATOR
+  #define INCLUDE_CANVAS
   #define INCLUDE_OVERVIEW
+  #define INCLUDE_CONFIGURATOR
   #define INCLUDE_NODE_EDITOR
 #endif
 
 #ifdef INCLUDE_STYLE
-  #include "../style.c"
+  #include "../../demo/common/style.c"
 #endif
 #ifdef INCLUDE_CALCULATOR
-  #include "../calculator.c"
+  #include "../../demo/common/calculator.c"
+#endif
+#ifdef INCLUDE_CANVAS
+  #include "../../demo/common/canvas.c"
 #endif
 #ifdef INCLUDE_OVERVIEW
-  #include "../overview.c"
+  #include "../../demo/common/overview.c"
+#endif
+#ifdef INCLUDE_CONFIGURATOR
+  #include "../../demo/common/style_configurator.c"
 #endif
 #ifdef INCLUDE_NODE_EDITOR
-  #include "../node_editor.c"
+  #include "../../demo/common/node_editor.c"
 #endif
 
 /* ===============================================================
@@ -82,10 +92,11 @@ WindowProc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
             if (width != 0 && height != 0 &&
                 (width != present.BackBufferWidth || height != present.BackBufferHeight))
             {
+                HRESULT hr;
                 nk_d3d9_release();
                 present.BackBufferWidth = width;
                 present.BackBufferHeight = height;
-                HRESULT hr = IDirect3DDevice9_Reset(device, &present);
+                hr = IDirect3DDevice9_Reset(device, &present);
                 NK_ASSERT(SUCCEEDED(hr));
                 nk_d3d9_resize(width, height);
             }
@@ -173,6 +184,11 @@ int main(void)
     HWND wnd;
     int running = 1;
 
+    #ifdef INCLUDE_CONFIGURATOR
+    static struct nk_color color_table[NK_COLOR_COUNT];
+    memcpy(color_table, nk_default_color_style, sizeof(color_table));
+    #endif
+
     /* Win32 */
     memset(&wc, 0, sizeof(wc));
     wc.style = CS_DBLCLKS;
@@ -185,7 +201,7 @@ int main(void)
 
     AdjustWindowRectEx(&rect, style, FALSE, exstyle);
 
-    wnd = CreateWindowExW(exstyle, wc.lpszClassName, L"Nuklear Demo",
+    wnd = CreateWindowExW(exstyle, wc.lpszClassName, L"Nuklear Direct3D 9 Demo",
         style | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT,
         rect.right - rect.left, rect.bottom - rect.top,
         NULL, NULL, wc.hInstance, NULL);
@@ -207,14 +223,6 @@ int main(void)
     nk_d3d9_font_stash_end();
     /*nk_style_load_all_cursors(ctx, atlas->cursors);*/
     /*nk_style_set_font(ctx, &droid->handle)*/;}
-
-    /* style.c */
-    #ifdef INCLUDE_STYLE
-    /*set_style(ctx, THEME_WHITE);*/
-    /*set_style(ctx, THEME_RED);*/
-    /*set_style(ctx, THEME_BLUE);*/
-    /*set_style(ctx, THEME_DARK);*/
-    #endif
 
     bg.r = 0.10f, bg.g = 0.18f, bg.b = 0.24f, bg.a = 1.0f;
     while (running)
@@ -268,8 +276,14 @@ int main(void)
         #ifdef INCLUDE_CALCULATOR
           calculator(ctx);
         #endif
+        #ifdef INCLUDE_CANVAS
+          canvas(ctx);
+        #endif
         #ifdef INCLUDE_OVERVIEW
           overview(ctx);
+        #endif
+        #ifdef INCLUDE_CONFIGURATOR
+          style_configurator(ctx, color_table);
         #endif
         #ifdef INCLUDE_NODE_EDITOR
           node_editor(ctx);

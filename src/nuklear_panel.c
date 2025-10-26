@@ -76,12 +76,12 @@ nk_panel_get_border_color(const struct nk_style *style, enum nk_panel_type type)
 NK_LIB nk_bool
 nk_panel_is_sub(enum nk_panel_type type)
 {
-    return (type & NK_PANEL_SET_SUB)?1:0;
+    return ((int)type & (int)NK_PANEL_SET_SUB)?1:0;
 }
 NK_LIB nk_bool
 nk_panel_is_nonblock(enum nk_panel_type type)
 {
-    return (type & NK_PANEL_SET_NONBLOCK)?1:0;
+    return ((int)type & (int)NK_PANEL_SET_NONBLOCK)?1:0;
 }
 NK_LIB nk_bool
 nk_panel_begin(struct nk_context *ctx, const char *title, enum nk_panel_type panel_type)
@@ -423,7 +423,7 @@ nk_panel_end(struct nk_context *ctx)
                 root_window = root_window->parent;
 
             /* only allow scrolling if parent window is active */
-            scroll_has_scrolling = 0;
+            scroll_has_scrolling = nk_false;
             if ((root_window == ctx->active) && layout->has_scrolling) {
                 /* and panel is being hovered and inside clip rect*/
                 if (nk_input_is_mouse_hovering_rect(in, layout->bounds) &&
@@ -492,7 +492,7 @@ nk_panel_end(struct nk_context *ctx)
 
     /* hide scroll if no user input */
     if (window->flags & NK_WINDOW_SCROLL_AUTO_HIDE) {
-        int has_input = ctx->input.mouse.delta.x != 0 || ctx->input.mouse.delta.y != 0 || ctx->input.mouse.scroll_delta.y != 0;
+        int has_input = nk_input_is_mouse_moved(&ctx->input) || ctx->input.mouse.scroll_delta.y != 0;
         int is_window_hovered = nk_window_is_hovered(ctx);
         int any_item_active = (ctx->last_widget_state & NK_WIDGET_STATE_MODIFIED);
         if ((!has_input && is_window_hovered) || (!is_window_hovered && !any_item_active))
