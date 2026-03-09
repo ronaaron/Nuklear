@@ -339,7 +339,7 @@ nk_window_get_height(const struct nk_context *ctx)
     return ctx->current->bounds.h;
 }
 NK_API struct nk_rect
-nk_window_get_content_region(struct nk_context *ctx)
+nk_window_get_content_region(const struct nk_context *ctx)
 {
     NK_ASSERT(ctx);
     NK_ASSERT(ctx->current);
@@ -347,7 +347,7 @@ nk_window_get_content_region(struct nk_context *ctx)
     return ctx->current->layout->clip;
 }
 NK_API struct nk_vec2
-nk_window_get_content_region_min(struct nk_context *ctx)
+nk_window_get_content_region_min(const struct nk_context *ctx)
 {
     NK_ASSERT(ctx);
     NK_ASSERT(ctx->current);
@@ -356,7 +356,7 @@ nk_window_get_content_region_min(struct nk_context *ctx)
     return nk_vec2(ctx->current->layout->clip.x, ctx->current->layout->clip.y);
 }
 NK_API struct nk_vec2
-nk_window_get_content_region_max(struct nk_context *ctx)
+nk_window_get_content_region_max(const struct nk_context *ctx)
 {
     NK_ASSERT(ctx);
     NK_ASSERT(ctx->current);
@@ -366,7 +366,7 @@ nk_window_get_content_region_max(struct nk_context *ctx)
         ctx->current->layout->clip.y + ctx->current->layout->clip.h);
 }
 NK_API struct nk_vec2
-nk_window_get_content_region_size(struct nk_context *ctx)
+nk_window_get_content_region_size(const struct nk_context *ctx)
 {
     NK_ASSERT(ctx);
     NK_ASSERT(ctx->current);
@@ -375,7 +375,7 @@ nk_window_get_content_region_size(struct nk_context *ctx)
     return nk_vec2(ctx->current->layout->clip.w, ctx->current->layout->clip.h);
 }
 NK_API struct nk_command_buffer*
-nk_window_get_canvas(struct nk_context *ctx)
+nk_window_get_canvas(const struct nk_context *ctx)
 {
     NK_ASSERT(ctx);
     NK_ASSERT(ctx->current);
@@ -384,7 +384,7 @@ nk_window_get_canvas(struct nk_context *ctx)
     return &ctx->current->buffer;
 }
 NK_API struct nk_panel*
-nk_window_get_panel(struct nk_context *ctx)
+nk_window_get_panel(const struct nk_context *ctx)
 {
     NK_ASSERT(ctx);
     NK_ASSERT(ctx->current);
@@ -392,7 +392,7 @@ nk_window_get_panel(struct nk_context *ctx)
     return ctx->current->layout;
 }
 NK_API void
-nk_window_get_scroll(struct nk_context *ctx, nk_uint *offset_x, nk_uint *offset_y)
+nk_window_get_scroll(const struct nk_context *ctx, nk_uint *offset_x, nk_uint *offset_y)
 {
     struct nk_window *win;
     NK_ASSERT(ctx);
@@ -415,7 +415,7 @@ nk_window_has_focus(const struct nk_context *ctx)
     return ctx->current == ctx->active;
 }
 NK_API nk_bool
-nk_window_is_hovered(struct nk_context *ctx)
+nk_window_is_hovered(const struct nk_context *ctx)
 {
     NK_ASSERT(ctx);
     NK_ASSERT(ctx->current);
@@ -430,7 +430,7 @@ nk_window_is_hovered(struct nk_context *ctx)
     }
 }
 NK_API nk_bool
-nk_window_is_any_hovered(struct nk_context *ctx)
+nk_window_is_any_hovered(const struct nk_context *ctx)
 {
     struct nk_window *iter;
     NK_ASSERT(ctx);
@@ -457,7 +457,7 @@ nk_window_is_any_hovered(struct nk_context *ctx)
     return 0;
 }
 NK_API nk_bool
-nk_item_is_any_active(struct nk_context *ctx)
+nk_item_is_any_active(const struct nk_context *ctx)
 {
     int any_hovered = nk_window_is_any_hovered(ctx);
     int any_active = (ctx->last_widget_state & NK_WIDGET_STATE_MODIFIED);
