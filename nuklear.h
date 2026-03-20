@@ -826,6 +826,8 @@ enum nk_buttons {
     NK_BUTTON_MIDDLE,
     NK_BUTTON_RIGHT,
     NK_BUTTON_DOUBLE,
+    NK_BUTTON_X1, /* Commonly used for "Back" in UI navigation. Mouse Button 4. */
+    NK_BUTTON_X2, /* Commonly used for "Forward" in UI navigation. Mouse Button 5. */
     NK_BUTTON_MAX
 };
 /*/// #### nk_input_begin
@@ -19857,7 +19859,6 @@ nk_create_table(struct nk_context *ctx)
     struct nk_page_element *elem;
     elem = nk_create_page_element(ctx);
     if (!elem) return 0;
-    nk_zero_struct(*elem);
     return &elem->data.tbl;
 }
 NK_LIB void
@@ -19948,7 +19949,6 @@ nk_create_panel(struct nk_context *ctx)
     struct nk_page_element *elem;
     elem = nk_create_page_element(ctx);
     if (!elem) return 0;
-    nk_zero_struct(*elem);
     return &elem->data.pan;
 }
 NK_LIB void
@@ -23231,7 +23231,12 @@ nk_group_begin_titled(struct nk_context *ctx, nk_hash id,
         NK_ASSERT(y_offset);
         if (!x_offset || !y_offset) return 0;
         *x_offset = *y_offset = 0;
-    } else y_offset = nk_find_value(win, id+1);
+    } else if (!(y_offset = nk_find_value(win, id+1))) {
+        y_offset = nk_add_value(ctx, win, id+1, 0);
+        NK_ASSERT(y_offset);
+        if (!y_offset) return 0;
+        *x_offset = *y_offset = 0; /* I think this covers the degenerate case */
+    }
     return nk_group_scrolled_offset_begin(ctx, x_offset, y_offset, title, flags);
 }
 NK_API nk_bool
@@ -23268,7 +23273,12 @@ nk_group_get_scroll(struct nk_context *ctx, nk_hash id, nk_uint *x_offset, nk_ui
         NK_ASSERT(y_offset_ptr);
         if (!x_offset_ptr || !y_offset_ptr) return;
         *x_offset_ptr = *y_offset_ptr = 0;
-    } else y_offset_ptr = nk_find_value(win, id+1);
+    } else if (!(y_offset_ptr = nk_find_value(win, id+1))) {
+        y_offset_ptr = nk_add_value(ctx, win, id+1, 0);
+        NK_ASSERT(y_offset_ptr);
+        if (!y_offset_ptr) return;
+        *x_offset_ptr = *y_offset_ptr = 0;
+    }
     if (x_offset)
       *x_offset = *x_offset_ptr;
     if (y_offset)
@@ -23298,7 +23308,11 @@ nk_group_set_scroll(struct nk_context *ctx, nk_hash id, nk_uint x_offset, nk_uin
         NK_ASSERT(y_offset_ptr);
         if (!x_offset_ptr || !y_offset_ptr) return;
         *x_offset_ptr = *y_offset_ptr = 0;
-    } else y_offset_ptr = nk_find_value(win, id+1);
+    } else if (!(y_offset_ptr = nk_find_value(win, id+1))) {
+        NK_ASSERT(y_offset_ptr);
+        if (!y_offset_ptr) return;
+        *x_offset_ptr = *y_offset_ptr = 0;
+    }
     *x_offset_ptr = x_offset;
     *y_offset_ptr = y_offset;
 }
@@ -23348,7 +23362,11 @@ nk_list_view_begin(struct nk_context *ctx, struct nk_list_view *view,
         NK_ASSERT(y_offset);
         if (!x_offset || !y_offset) return 0;
         *x_offset = *y_offset = 0;
-    } else y_offset = nk_find_value(win, title_hash+1);
+    } else if (!(y_offset = nk_find_value(win, title_hash+1))) {
+        NK_ASSERT(y_offset);
+        if (!y_offset) return 0;
+        *x_offset = *y_offset = 0;
+    }
     view->scroll_value = *y_offset;
     view->scroll_pointer = y_offset;
 
