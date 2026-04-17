@@ -3523,8 +3523,9 @@ enum nk_edit_events {
     NK_EDIT_INACTIVE    = NK_FLAG(1), /* edit widget is not active and is not being modified */
     NK_EDIT_ACTIVATED   = NK_FLAG(2), /* edit widget went from state inactive to state active */
     NK_EDIT_DEACTIVATED = NK_FLAG(3), /* edit widget went from state active to state inactive */
-    NK_EDIT_COMMITED    = NK_FLAG(4) /* edit widget has received an enter and lost focus */
+    NK_EDIT_COMMITTED   = NK_FLAG(4)  /**!< edit widget has received an enter and lost focus */
 };
+#define NK_EDIT_COMMITED NK_EDIT_COMMITTED
 NK_API nk_flags nk_edit_string(struct nk_context*, nk_flags, char *buffer, int *len, int max, nk_plugin_filter);
 NK_API nk_flags nk_edit_string_zero_terminated(struct nk_context*, nk_flags, char *buffer, int max, nk_plugin_filter);
 NK_API nk_flags nk_edit_buffer(struct nk_context*, nk_flags, struct nk_text_edit*, nk_plugin_filter);
@@ -18776,7 +18777,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     slider->spacing         = nk_vec2(2,2);
     slider->userdata        = nk_handle_ptr(0);
     slider->show_buttons    = nk_false;
-    slider->bar_height      = 8;
+    slider->bar_height      = 4;
     slider->rounding        = 0;
     slider->color_factor    = 1.0f;
     slider->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
@@ -25695,12 +25696,12 @@ nk_draw_slider(struct nk_command_buffer *out, nk_flags state,
     }
     /* calculate slider background bar */
     bar.x = bounds->x;
-    bar.y = (visual_cursor->y + visual_cursor->h/2) - bounds->h/12;
+    bar.y = (bounds->y + bounds->h*0.5f) - style->bar_height*0.5f;
     bar.w = bounds->w;
-    bar.h = bounds->h/6;
+    bar.h = style->bar_height;
 
     /* filled background bar style */
-    fill.w = (visual_cursor->x + (visual_cursor->w/2.0f)) - bar.x;
+    fill.w = visual_cursor->x+ 0.5*visual_cursor->w - bar.x;
     fill.x = bar.x;
     fill.y = bar.y;
     fill.h = bar.h;
@@ -25783,9 +25784,6 @@ nk_do_slider(nk_flags *state,
         bounds.w = bounds.w - (2*button.w + 2*style->spacing.x);
     }
 
-    /* remove one cursor size to support visual cursor */
-    bounds.x += style->cursor_size.x*0.5f;
-    bounds.w -= style->cursor_size.x;
 
     /* make sure the provided values are correct */
     slider_max = NK_MAX(min, max);
@@ -25927,7 +25925,7 @@ nk_knob_behavior(nk_flags *state, struct nk_input *in,
 
     /* knob widget state */
     if (nk_input_is_mouse_hovering_rect(in, bounds)){
-        *state = NK_WIDGET_STATE_HOVERED;
+        *state |= NK_WIDGET_STATE_HOVERED;
             /* handle scroll and arrow inputs */
             if (in->mouse.scroll_delta.y > 0 ||
            (in->keyboard.keys[NK_KEY_UP].down && in->keyboard.keys[NK_KEY_UP].clicked)) {
@@ -26032,7 +26030,7 @@ nk_draw_knob(struct nk_command_buffer *out, nk_flags state,
     cursor_start.y = (cursor_start.y + cursor_end.y) / 2;
 
     /* draw cursor */
-    nk_stroke_line(out, cursor_start.x, cursor_start.y, cursor_end.x, cursor_end.y, 2, nk_rgb_factor(cursor, style->color_factor));
+    nk_stroke_line(out, cursor_start.x, cursor_start.y, cursor_end.x, cursor_end.y, style->cursor_width, nk_rgb_factor(cursor, style->color_factor));
     }
 }
 NK_LIB float
@@ -27904,7 +27902,7 @@ nk_do_edit(nk_flags *state, struct nk_command_buffer *out,
             if (flags & NK_EDIT_CTRL_ENTER_NEWLINE && shift_mod)
                 nk_textedit_text(edit, "\n", 1);
             else if (flags & NK_EDIT_SIG_ENTER)
-                ret |= NK_EDIT_COMMITED;
+                ret |= NK_EDIT_COMMITTED;
             else nk_textedit_text(edit, "\n", 1);
         }
 
