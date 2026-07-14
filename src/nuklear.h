@@ -340,6 +340,11 @@ enum nk_symbol_type {
     NK_SYMBOL_TRIANGLE_DOWN_OUTLINE,
     NK_SYMBOL_TRIANGLE_LEFT_OUTLINE,
     NK_SYMBOL_TRIANGLE_RIGHT_OUTLINE,
+    NK_SYMBOL_CHEVRON_UP,
+    NK_SYMBOL_CHEVRON_RIGHT,
+    NK_SYMBOL_CHEVRON_DOWN,
+    NK_SYMBOL_CHEVRON_LEFT,
+    NK_SYMBOL_HAMBURGER, /** Three horizontal lines. */
     NK_SYMBOL_MAX
 };
 /* =============================================================================
@@ -3397,6 +3402,9 @@ NK_API void nk_contextual_end(struct nk_context*);
  * ============================================================================= */
 NK_API void nk_tooltip(struct nk_context*, const char*);
 NK_API void nk_tooltip_offset(struct nk_context *ctx, const char *text, enum nk_tooltip_pos position, struct nk_vec2 offset);
+NK_API void nk_do_tooltip(struct nk_context*, const char*, struct nk_rect);
+NK_API void nk_do_tooltip_delay(struct nk_context*, const char*, struct nk_rect, float*);
+NK_API void nk_do_tooltip_delay_clicked(struct nk_context*, const char*, struct nk_rect, float* timer, nk_bool*);
 #ifdef NK_INCLUDE_STANDARD_VARARGS
 NK_API void nk_tooltipf(struct nk_context*, NK_PRINTF_FORMAT_STRING const char*, ...) NK_PRINTF_VARARG_FUNC(2);
 NK_API void nk_tooltipfv(struct nk_context*, NK_PRINTF_FORMAT_STRING const char*, va_list) NK_PRINTF_VALIST_FUNC(2);
