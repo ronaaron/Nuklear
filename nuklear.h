@@ -18027,8 +18027,12 @@ nk_font_atlas_bake(struct nk_font_atlas *atlas, int *width, int *height,
 
 #ifdef NK_INCLUDE_DEFAULT_FONT
     /* no font added so just use default font */
-    if (!atlas->font_num)
-        atlas->default_font = nk_font_atlas_add_default(atlas, 13.0f, 0);
+    if (!atlas->font_num) {
+        struct nk_font_config config;
+        config = nk_font_config(0);
+        config.oversample_h = 3;
+        atlas->default_font = nk_font_atlas_add_default(atlas, 13.0f, &config);
+    }
 #endif
     NK_ASSERT(atlas->font_num);
     if (!atlas->font_num) return 0;
@@ -21511,6 +21515,7 @@ nk_nonblock_begin(struct nk_context *ctx,
             root->flags |= NK_WINDOW_REMOVE_ROM;
             root = root->parent;
         }
+        win->popup.buf.active = 0;
         return is_active;
     }
     popup->bounds = body;
