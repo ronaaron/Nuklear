@@ -95,6 +95,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
 {
     struct nk_style *style;
     struct nk_style_text *text;
+    struct nk_style_link *link;
     struct nk_style_button *button;
     struct nk_style_toggle *toggle;
     struct nk_style_selectable *select;
@@ -120,6 +121,18 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     text->padding = nk_vec2(0,0);
     text->color_factor = 1.0f;
     text->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
+    /* default link */
+    link = &style->link;
+    nk_zero_struct(*link);
+    link->text_normal          = table[NK_COLOR_TEXT];
+    link->text_hover           = table[NK_COLOR_TEXT];
+    link->text_active          = table[NK_COLOR_TEXT];
+    link->underline            = NK_LINK_UNDERLINE_ALWAYS;
+    link->underline_thickness  = 1.0f;
+    link->padding              = nk_vec2(0,0);
+    link->touch_padding        = nk_vec2(0,0);
+    link->color_factor         = 1.0f;
+    link->disabled_factor      = NK_WIDGET_DISABLED_FACTOR;
 
     /* default button */
     button = &style->button;

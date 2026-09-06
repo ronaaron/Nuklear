@@ -6,7 +6,7 @@
  *                              SCROLLBAR
  *
  * ===============================================================*/
-NK_LIB float
+NK_API float
 nk_scrollbar_behavior(nk_flags *state, struct nk_input *in,
     int has_scrolling, const struct nk_rect *scroll,
     const struct nk_rect *cursor, const struct nk_rect *empty0,
@@ -82,7 +82,7 @@ nk_scrollbar_behavior(nk_flags *state, struct nk_input *in,
         *state |= NK_WIDGET_STATE_LEFT;
     return scroll_offset;
 }
-NK_LIB void
+NK_API void
 nk_draw_scrollbar(struct nk_command_buffer *out, nk_flags state,
     const struct nk_style_scrollbar *style, const struct nk_rect *bounds,
     const struct nk_rect *scroll)
@@ -130,7 +130,7 @@ nk_draw_scrollbar(struct nk_command_buffer *out, nk_flags state,
             break;
     }
 }
-NK_LIB float
+NK_API float
 nk_do_scrollbarv(nk_flags *state,
     struct nk_command_buffer *out, struct nk_rect scroll, int has_scrolling,
     float offset, float target, float step, float button_pixel_inc,
@@ -219,7 +219,7 @@ nk_do_scrollbarv(nk_flags *state,
     if (style->draw_end) style->draw_end(out, style->userdata);
     return scroll_offset;
 }
-NK_LIB float
+NK_API float
 nk_do_scrollbarh(nk_flags *state,
     struct nk_command_buffer *out, struct nk_rect scroll, int has_scrolling,
     float offset, float target, float step, float button_pixel_inc,

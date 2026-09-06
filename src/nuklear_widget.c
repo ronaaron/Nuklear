@@ -279,6 +279,7 @@ nk_widget_disable_begin(struct nk_context* ctx)
     style->tab.tab_minimize_button.color_factor_text = style->tab.tab_minimize_button.disabled_factor;
     style->tab.tab_minimize_button.color_factor_background = style->tab.tab_minimize_button.disabled_factor;
     style->text.color_factor = style->text.disabled_factor;
+    style->link.color_factor = style->link.disabled_factor;
 }
 NK_API void
 nk_widget_disable_end(struct nk_context* ctx)
@@ -337,4 +338,5 @@ nk_widget_disable_end(struct nk_context* ctx)
     style->tab.tab_minimize_button.color_factor_text = 1.0f;
     style->tab.tab_minimize_button.color_factor_background = 1.0f;
     style->text.color_factor = 1.0f;
+    style->link.color_factor = 1.0f;
 }

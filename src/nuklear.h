@@ -258,6 +258,7 @@ struct nk_panel;
 struct nk_context;
 struct nk_draw_vertex_layout_element;
 struct nk_style_button;
+struct nk_style_link;
 struct nk_style_toggle;
 struct nk_style_selectable;
 struct nk_style_slide;
@@ -289,6 +290,11 @@ NK_STATIC_ASSERT(!((nk_bool)0) == !(nk_false));
 NK_STATIC_ASSERT(!((nk_bool)1) == !(nk_true));
 enum nk_heading         {NK_UP, NK_RIGHT, NK_DOWN, NK_LEFT};
 enum nk_button_behavior {NK_BUTTON_DEFAULT, NK_BUTTON_REPEATER};
+enum nk_link_underline {
+    NK_LINK_UNDERLINE_NONE,
+    NK_LINK_UNDERLINE_HOVER,
+    NK_LINK_UNDERLINE_ALWAYS
+};
 enum nk_modify          {NK_FIXED = nk_false, NK_MODIFIABLE = nk_true};
 enum nk_orientation     {NK_VERTICAL, NK_HORIZONTAL};
 enum nk_collapse_states {NK_MINIMIZED = nk_false, NK_MAXIMIZED = nk_true};
@@ -3005,6 +3011,21 @@ NK_API void nk_value_color_hex(struct nk_context*, const char *prefix, struct nk
 #endif
 /* =============================================================================
  *
+ *                                  LINK
+ *
+ * ============================================================================= */
+NK_API nk_bool nk_link_text(struct nk_context*, const char *title, int len, nk_flags align);
+NK_API nk_bool nk_link_label(struct nk_context*, const char *title, nk_flags align);
+NK_API nk_bool nk_link_text_styled(struct nk_context*, const struct nk_style_link*, const char *title, int len, nk_flags align);
+NK_API nk_bool nk_link_label_styled(struct nk_context*, const struct nk_style_link*, const char *title, nk_flags align);
+NK_API nk_bool nk_link_text_underline(struct nk_context*, const char *title, int len, nk_flags align, enum nk_link_underline);
+NK_API nk_bool nk_link_label_underline(struct nk_context*, const char *title, nk_flags align, enum nk_link_underline);
+NK_API nk_bool nk_link_text_hover_underline(struct nk_context*, const char *title, int len, nk_flags align);
+NK_API nk_bool nk_link_label_hover_underline(struct nk_context*, const char *title, nk_flags align);
+NK_API nk_bool nk_link_text_no_underline(struct nk_context*, const char *title, int len, nk_flags align);
+NK_API nk_bool nk_link_label_no_underline(struct nk_context*, const char *title, nk_flags align);
+NK_API nk_bool nk_link_text_colored(struct nk_context*, const char *title, int len, nk_flags align, struct nk_color);
+NK_API nk_bool nk_link_label_colored(struct nk_context*, const char *title, nk_flags align, struct nk_color);
  *                                  BUTTON
  *
  * ============================================================================= */
@@ -4765,6 +4786,17 @@ struct nk_style_text {
     float disabled_factor;
 };
 
+struct nk_style_link {
+    struct nk_color text_normal;
+    struct nk_color text_hover;
+    struct nk_color text_active;
+    enum nk_link_underline underline;
+    float underline_thickness;
+    struct nk_vec2 padding;
+    struct nk_vec2 touch_padding;
+    float color_factor;
+    float disabled_factor;
+};
 struct nk_style_button {
     /* background */
     struct nk_style_item normal;
@@ -5223,6 +5255,7 @@ struct nk_style {
     int cursor_visible;
 
     struct nk_style_text text;
+    struct nk_style_link link;
     struct nk_style_button button;
     struct nk_style_button contextual_button;
     struct nk_style_button menu_button;

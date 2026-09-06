@@ -9,14 +9,13 @@ def print_help():
 """usage: python single_header_packer.py --macro <macro> [--intro <files>] --extern <files> --pub <files> --priv1 <files> --priv2 <files> [--outro <files>]
 
        where <files> can be a comma-separated list of files. e.g. --priv *.c,inc/*.h
+       or a space separated list encapsulated in quotes. e.g. --priv1 "file.c file2.c file3.c"
 
        The 'extern' files are placed between 'priv1' and 'priv2'.
 
        The resulting code is packed as follows:
 
-           /*
            [intro file contents]
-           */
 
            #ifndef <macro>_SINGLE_HEADER
            #define <macro>_SINGLE_HEADER
@@ -33,7 +32,8 @@ def print_help():
 
 def parse_files(arg):
     files = []
-    paths = arg.split(",")
+    paths = re.split(r'[,\s]', arg)
+
     for path in paths:
         if "*" in path:
             # Wildcard
@@ -129,10 +129,8 @@ if macro == "":
 
 # Print concatenated output
 # -------------------------
-print("/*")
 for f in intro_files:
     sys.stdout.write(open(f, 'r').read())
-print("*/")
 
 # print("\n#ifndef " + macro + "_SINGLE_HEADER");
 # print("#define " + macro + "_SINGLE_HEADER");
@@ -160,8 +158,8 @@ for f in priv_files2:
 
 print("#endif /* " + macro + "_IMPLEMENTATION */");
 
-print("\n/*")
+print("/*")
 for f in outro_files:
     sys.stdout.write(open(f, 'r').read())
-print("*/\n")
-
+    print("")
+print("*/")
