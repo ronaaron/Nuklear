@@ -35,6 +35,8 @@ nk_tooltip_begin_offset(struct nk_context *ctx, float width, enum nk_tooltip_pos
 
     w = nk_iceilf(width);
     h = (int)NK_MAX(win->layout->row.min_height, ctx->style.font->height+2*ctx->style.window.padding.y);
+
+    /* Default origin is top left, plus user offset */
     x = nk_ifloorf(in->mouse.pos.x + 1) - (int)win->layout->clip.x + (int)offset.x;
     y = nk_ifloorf(in->mouse.pos.y + 1) - (int)win->layout->clip.y + (int)offset.y;
 
@@ -167,6 +169,7 @@ nk_tooltip_offset(struct nk_context *ctx, const char *text, enum nk_tooltip_pos 
     text_len = nk_strlen(text);
     text_width = style->font->width(style->font->userdata,
                     style->font->height, text, text_len);
+    /* outer bounds: nk_panel_begin subtracts popup padding and border */
     text_width += 2 * style->window.popup_padding.x;
     text_width += 2 * style->window.popup_border;
     text_height = (style->font->height + 2 * padding.y);

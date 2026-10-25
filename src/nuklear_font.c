@@ -131,7 +131,7 @@ nk_font_baker_memory(nk_size *temp, int *glyph_count,
     *glyph_count = 0;
     for (iter = config_list; iter; iter = iter->next) {
         i = iter;
-        do {if (!i->range) iter->range = nk_font_default_glyph_ranges();
+        do {if (!i->range) i->range = nk_font_default_glyph_ranges();
             range_count = nk_range_count(i->range);
             total_range_count += range_count;
             *glyph_count += nk_range_glyph_count(i->range, range_count);
@@ -360,8 +360,6 @@ nk_font_bake(struct nk_font_baker *baker, void *image_memory, int width, int hei
 
                     /* query glyph bounds from stb_truetype */
                     const stbtt_packedchar *pc = &range->chardata_for_range[char_idx];
-					/* removed following line because it messes-up glyph count in ranges */
-                    /* if (!pc->x0 && !pc->x1 && !pc->y0 && !pc->y1) continue; */
                     codepoint = (nk_rune)(range->first_unicode_codepoint_in_range + char_idx);
                     stbtt_GetPackedQuad(range->chardata_for_range, (int)width,
                         (int)height, char_idx, &dummy_x, &dummy_y, &q, 0);
@@ -559,6 +557,8 @@ nk_font_init(struct nk_font *font, float pixel_height,
     font->texture = atlas;
     font->fallback_codepoint = fallback_codepoint;
     font->fallback = nk_font_find_glyph(font, fallback_codepoint);
+    if (!font->fallback)
+        font->fallback = font->glyphs;
 
     font->handle.height = font->info.height * font->scale;
     font->handle.width = nk_font_text_width;
@@ -575,8 +575,8 @@ nk_font_init(struct nk_font *font, float pixel_height,
  *
  * ProggyClean.ttf
  * Copyright (c) 2004, 2005 Tristan Grimmer
- * MIT license (see License.txt in http://www.upperbounds.net/download/ProggyClean.ttf.zip)
- * Download and more information at http://upperbounds.net
+ * MIT license https://github.com/bluescan/proggyfonts/blob/master/LICENSE
+ * Download and more information at https://github.com/bluescan/proggyfonts
  *-----------------------------------------------------------------------------*/
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -743,7 +743,7 @@ nk__lit(unsigned char *data, unsigned int length)
     NK_ASSERT (nk__dout + length <= nk__barrier);
     if (nk__dout + length > nk__barrier) { nk__dout += length; return; }
     if (data < nk__barrier2) { nk__dout = nk__barrier+1; return; }
-    NK_MEMCPY(nk__dout, data, length);
+    NK_MEMCPY(nk__dout, data, (nk_size)length);
     nk__dout += length;
 }
 NK_INTERN unsigned char*
@@ -1181,6 +1181,13 @@ nk_font_atlas_bake(struct nk_font_atlas *atlas, int *width, int *height,
 
 #ifdef NK_INCLUDE_DEFAULT_FONT
     /* no font added so just use default font */
+    /* FIXME(sleeptightAnsiC): This "fallback" exists for compatibility
+     * with code that creates empty atlas and immediately bakes it.
+     * Several demos do this, but it doesn't make sense for API to allow it.
+     * It was never documented anywhere and it's more of a hack than feature.
+     * App/backend should call nk_font_atlas_add_default() on it's own
+     * with whatever config it wants, and treat it like any other font.
+     * Worth to consider this for removal during next major release... */
     if (!atlas->font_num) {
         struct nk_font_config config;
         config = nk_font_config(0);
