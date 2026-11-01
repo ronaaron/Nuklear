@@ -434,7 +434,6 @@ nk_draw_list_stroke_poly_line(struct nk_draw_list *list, const struct nk_vec2 *p
     nk_draw_list_push_userdata(list, list->userdata);
 #endif
 
-    color.a = (nk_byte)((float)color.a * list->config.global_alpha);
     nk_color_fv(&col.r, color);
     col_trans = col;
     col_trans.a = 0;
@@ -1189,7 +1188,7 @@ static int nk_num(nk_rune rune) {
 
 static int nk_ws_punct(nk_rune rune)
 { 
-	return (rune < 0x40) // || (rune>=0x3A && rune <= 0x40)
+	return (rune < 0x40) /* || (rune>=0x3A && rune <= 0x40) */
 		|| (rune>=0x5B && rune <= 0x60) 
 		|| (rune>=0x78 && rune <= 0x7E) ;
 }
@@ -1311,11 +1310,11 @@ nk_draw_list_add_text(struct nk_draw_list *list, const struct nk_user_font *font
     struct nk_color fg)
 {
     float x = 0;
-    int ix = 0;
-	int rune_len =0;
+    int text_len = 0;
     nk_rune unicode = 0;
-    nk_rune *unistr = (nk_rune*) alloca(len*sizeof(nk_rune));
     nk_rune next = 0;
+    int glyph_len = 0;
+    int next_glyph_len = 0;
     struct nk_user_font_glyph g;
 
     NK_ASSERT(list);
@@ -1323,30 +1322,30 @@ nk_draw_list_add_text(struct nk_draw_list *list, const struct nk_user_font *font
     if (!NK_INTERSECT(rect.x, rect.y, rect.w, rect.h,
         list->clip_rect.x, list->clip_rect.y, list->clip_rect.w, list->clip_rect.h)) return;
 
-	/* invalid texture */
-	int font_texture_id = 0;
+    nk_draw_list_push_image(list, font->texture);
 
     x = rect.x;
 
 	/* reverse all RTL sequences */
-	rune_len = nk_utf_decode_string_rtl(text, unistr, len);
-	if (!rune_len) return;
+    glyph_len = nk_utf_decode(text, &unicode, len);
+	if (!glyph_len) return;
 	
 
     /* draw every glyph image */
     fg.a = (nk_byte)((float)fg.a * list->config.global_alpha);
-	for (ix=0; ix<rune_len; ix++)
-	{
+    while (text_len < len && glyph_len) {
         float gx, gy, gh, gw;
         float char_width = 0;
-		unicode = unistr[ix];
         if (unicode == NK_UTF_INVALID) break;
 
         /* query currently drawn glyph information */
+        next_glyph_len = nk_utf_decode(text + text_len + glyph_len, &next, (int)len - text_len);
         font->query(font->userdata, font_height, &g, unicode,
                     (next == NK_UTF_INVALID) ? '\0' : next);
 
 		/* if the font texture has changed, push the new one */
+		/* invalid texture */
+		int font_texture_id = 0;
 		if (font->texture.id != font_texture_id)
 		{
 			/* invalid texture id? */
@@ -1365,7 +1364,10 @@ nk_draw_list_add_text(struct nk_draw_list *list, const struct nk_user_font *font
             g.uv[0], g.uv[1], fg);
 
         /* offset next glyph */
+        text_len += glyph_len;
         x += char_width;
+        glyph_len = next_glyph_len;
+        unicode = next;
     }
 }
 

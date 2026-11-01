@@ -3216,6 +3216,7 @@ NK_API nk_bool nk_link_text_no_underline(struct nk_context*, const char *title, 
 NK_API nk_bool nk_link_label_no_underline(struct nk_context*, const char *title, nk_flags align);
 NK_API nk_bool nk_link_text_colored(struct nk_context*, const char *title, int len, nk_flags align, struct nk_color);
 NK_API nk_bool nk_link_label_colored(struct nk_context*, const char *title, nk_flags align, struct nk_color);
+/* ==============================================================
  *                                  BUTTON
  *
  * ============================================================================= */
@@ -3244,6 +3245,7 @@ NK_API nk_bool nk_checkbox_text(struct nk_context*, const char*, int, nk_bool *a
 NK_API nk_bool nk_checkbox_flags_text(struct nk_context*, const char*, int, unsigned int *flags, unsigned int value);
 /* =============================================================================
  *
+/* ==============================================================
  *                                  RADIO BUTTON
  *
  * ============================================================================= */
@@ -8728,11 +8730,11 @@ nk_str_append_str_utf8(struct nk_str *str, const char *text)
     nk_rune unicode;
     if (!str || !text) return 0;
 
-    glyph_len = byte_len = nk_utf_decode(text+byte_len, &unicode, 4);
+    glyph_len = nk_utf_decode(text, &unicode, 4);
     while (unicode != '\0' && glyph_len) {
-        glyph_len = nk_utf_decode(text+byte_len, &unicode, 4);
         byte_len += glyph_len;
         num_runes++;
+        glyph_len = nk_utf_decode(text+byte_len, &unicode, 4);
     }
     nk_str_append_text_char(str, text, byte_len);
     return num_runes;
@@ -8856,11 +8858,11 @@ nk_str_insert_str_utf8(struct nk_str *str, int pos, const char *text)
     nk_rune unicode;
     if (!str || !text) return 0;
 
-    glyph_len = byte_len = nk_utf_decode(text+byte_len, &unicode, 4);
+    glyph_len = nk_utf_decode(text, &unicode, 4);
     while (unicode != '\0' && glyph_len) {
-        glyph_len = nk_utf_decode(text+byte_len, &unicode, 4);
         byte_len += glyph_len;
         num_runes++;
+        glyph_len = nk_utf_decode(text+byte_len, &unicode, 4);
     }
     nk_str_insert_at_rune(str, pos, text, byte_len);
     return num_runes;
@@ -8918,14 +8920,14 @@ nk_str_remove_runes(struct nk_str *str, int len)
     NK_ASSERT(len >= 0);
     if (!str || len < 0) return;
     if (len >= str->len) {
-        str->len = 0;
+        nk_str_clear(str);
         return;
     }
 
     index = str->len - len;
     begin = nk_str_at_rune(str, index, &unicode, &len);
     end = (const char*)str->buffer.memory.ptr + str->buffer.allocated;
-    nk_str_remove_chars(str, (int)(end-begin)+1);
+    nk_str_remove_chars(str, (int)(end-begin));
 }
 NK_API void
 nk_str_delete_chars(struct nk_str *s, int pos, int len)
@@ -9077,14 +9079,14 @@ nk_str_get_const(const struct nk_str *s)
     return (const char*)s->buffer.memory.ptr;
 }
 NK_API int
-nk_str_len(struct nk_str *s)
+nk_str_len(const struct nk_str *s)
 {
     NK_ASSERT(s);
     if (!s || !s->len || !s->buffer.allocated) return 0;
     return s->len;
 }
 NK_API int
-nk_str_len_char(struct nk_str *s)
+nk_str_len_char(const struct nk_str *s)
 {
     NK_ASSERT(s);
     if (!s || !s->len || !s->buffer.allocated) return 0;
@@ -10093,7 +10095,6 @@ nk_draw_list_stroke_poly_line(struct nk_draw_list *list, const struct nk_vec2 *p
     nk_draw_list_push_userdata(list, list->userdata);
 #endif
 
-    color.a = (nk_byte)((float)color.a * list->config.global_alpha);
     nk_color_fv(&col.r, color);
     col_trans = col;
     col_trans.a = 0;
@@ -10848,7 +10849,7 @@ static int nk_num(nk_rune rune) {
 
 static int nk_ws_punct(nk_rune rune)
 { 
-	return (rune < 0x40) // || (rune>=0x3A && rune <= 0x40)
+	return (rune < 0x40) /* || (rune>=0x3A && rune <= 0x40) */
 		|| (rune>=0x5B && rune <= 0x60) 
 		|| (rune>=0x78 && rune <= 0x7E) ;
 }
@@ -10970,11 +10971,11 @@ nk_draw_list_add_text(struct nk_draw_list *list, const struct nk_user_font *font
     struct nk_color fg)
 {
     float x = 0;
-    int ix = 0;
-	int rune_len =0;
+    int text_len = 0;
     nk_rune unicode = 0;
-    nk_rune *unistr = (nk_rune*) alloca(len*sizeof(nk_rune));
     nk_rune next = 0;
+    int glyph_len = 0;
+    int next_glyph_len = 0;
     struct nk_user_font_glyph g;
 
     NK_ASSERT(list);
@@ -10982,30 +10983,30 @@ nk_draw_list_add_text(struct nk_draw_list *list, const struct nk_user_font *font
     if (!NK_INTERSECT(rect.x, rect.y, rect.w, rect.h,
         list->clip_rect.x, list->clip_rect.y, list->clip_rect.w, list->clip_rect.h)) return;
 
-	/* invalid texture */
-	int font_texture_id = 0;
+    nk_draw_list_push_image(list, font->texture);
 
     x = rect.x;
 
 	/* reverse all RTL sequences */
-	rune_len = nk_utf_decode_string_rtl(text, unistr, len);
-	if (!rune_len) return;
+    glyph_len = nk_utf_decode(text, &unicode, len);
+	if (!glyph_len) return;
 	
 
     /* draw every glyph image */
     fg.a = (nk_byte)((float)fg.a * list->config.global_alpha);
-	for (ix=0; ix<rune_len; ix++)
-	{
+    while (text_len < len && glyph_len) {
         float gx, gy, gh, gw;
         float char_width = 0;
-		unicode = unistr[ix];
         if (unicode == NK_UTF_INVALID) break;
 
         /* query currently drawn glyph information */
+        next_glyph_len = nk_utf_decode(text + text_len + glyph_len, &next, (int)len - text_len);
         font->query(font->userdata, font_height, &g, unicode,
                     (next == NK_UTF_INVALID) ? '\0' : next);
 
 		/* if the font texture has changed, push the new one */
+		/* invalid texture */
+		int font_texture_id = 0;
 		if (font->texture.id != font_texture_id)
 		{
 			/* invalid texture id? */
@@ -11024,7 +11025,10 @@ nk_draw_list_add_text(struct nk_draw_list *list, const struct nk_user_font *font
             g.uv[0], g.uv[1], fg);
 
         /* offset next glyph */
+        text_len += glyph_len;
         x += char_width;
+        glyph_len = next_glyph_len;
+        unicode = next;
     }
 }
 
@@ -16985,7 +16989,7 @@ nk_font_baker_memory(nk_size *temp, int *glyph_count,
     *glyph_count = 0;
     for (iter = config_list; iter; iter = iter->next) {
         i = iter;
-        do {if (!i->range) iter->range = nk_font_default_glyph_ranges();
+        do {if (!i->range) i->range = nk_font_default_glyph_ranges();
             range_count = nk_range_count(i->range);
             total_range_count += range_count;
             *glyph_count += nk_range_glyph_count(i->range, range_count);
@@ -17214,8 +17218,6 @@ nk_font_bake(struct nk_font_baker *baker, void *image_memory, int width, int hei
 
                     /* query glyph bounds from stb_truetype */
                     const stbtt_packedchar *pc = &range->chardata_for_range[char_idx];
-					/* removed following line because it messes-up glyph count in ranges */
-                    /* if (!pc->x0 && !pc->x1 && !pc->y0 && !pc->y1) continue; */
                     codepoint = (nk_rune)(range->first_unicode_codepoint_in_range + char_idx);
                     stbtt_GetPackedQuad(range->chardata_for_range, (int)width,
                         (int)height, char_idx, &dummy_x, &dummy_y, &q, 0);
@@ -17413,6 +17415,8 @@ nk_font_init(struct nk_font *font, float pixel_height,
     font->texture = atlas;
     font->fallback_codepoint = fallback_codepoint;
     font->fallback = nk_font_find_glyph(font, fallback_codepoint);
+    if (!font->fallback)
+        font->fallback = font->glyphs;
 
     font->handle.height = font->info.height * font->scale;
     font->handle.width = nk_font_text_width;
@@ -17429,8 +17433,8 @@ nk_font_init(struct nk_font *font, float pixel_height,
  *
  * ProggyClean.ttf
  * Copyright (c) 2004, 2005 Tristan Grimmer
- * MIT license (see License.txt in http://www.upperbounds.net/download/ProggyClean.ttf.zip)
- * Download and more information at http://upperbounds.net
+ * MIT license https://github.com/bluescan/proggyfonts/blob/master/LICENSE
+ * Download and more information at https://github.com/bluescan/proggyfonts
  *-----------------------------------------------------------------------------*/
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -17597,7 +17601,7 @@ nk__lit(unsigned char *data, unsigned int length)
     NK_ASSERT (nk__dout + length <= nk__barrier);
     if (nk__dout + length > nk__barrier) { nk__dout += length; return; }
     if (data < nk__barrier2) { nk__dout = nk__barrier+1; return; }
-    NK_MEMCPY(nk__dout, data, length);
+    NK_MEMCPY(nk__dout, data, (nk_size)length);
     nk__dout += length;
 }
 NK_INTERN unsigned char*
@@ -18035,6 +18039,13 @@ nk_font_atlas_bake(struct nk_font_atlas *atlas, int *width, int *height,
 
 #ifdef NK_INCLUDE_DEFAULT_FONT
     /* no font added so just use default font */
+    /* FIXME(sleeptightAnsiC): This "fallback" exists for compatibility
+     * with code that creates empty atlas and immediately bakes it.
+     * Several demos do this, but it doesn't make sense for API to allow it.
+     * It was never documented anywhere and it's more of a hack than feature.
+     * App/backend should call nk_font_atlas_add_default() on it's own
+     * with whatever config it wants, and treat it like any other font.
+     * Worth to consider this for removal during next major release... */
     if (!atlas->font_num) {
         struct nk_font_config config;
         config = nk_font_config(0);
@@ -20888,7 +20899,7 @@ nk_begin_titled(struct nk_context *ctx, nk_hash id, const char *title,
     int ret = 0;
 
     NK_ASSERT(ctx);
-//    NK_ASSERT(ctx->style.font && ctx->style.font->width && "if this triggers you forgot to add a font");
+/*    NK_ASSERT(ctx->style.font && ctx->style.font->width && "if this triggers you forgot to add a font"); */
     NK_ASSERT(!ctx->current && "if this triggers you missed a `nk_end` call");
     if (!ctx || ctx->current)
         return 0;
@@ -23192,7 +23203,7 @@ nk_tree_element_image_push_hashed_base(struct nk_context *ctx, enum nk_tree_type
     /* draw label */
     {nk_flags dummy = 0;
     struct nk_rect label;
-    /* calculate size of the text and tooltip */
+    /* selectable insets by padding on both sides */
     text_len = nk_strlen(title);
     text_width = style->font->width(style->font->userdata, style->font->height, title, text_len);
     text_width += 2 * padding.x;
@@ -24602,118 +24613,13 @@ nk_image_color(struct nk_context *ctx, struct nk_image img, struct nk_color col)
 
 
 
-/* ===============================================================
- *
- *                          9-SLICE
- *
- * ===============================================================*/
-NK_API struct nk_nine_slice
-nk_sub9slice_ptr(void *ptr, nk_ushort w, nk_ushort h, struct nk_rect rgn, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
-{
-    struct nk_nine_slice s;
-    struct nk_image *i = &s.img;
-    nk_zero(&s, sizeof(s));
-    i->handle.ptr = ptr;
-    i->w = w; i->h = h;
-    i->region[0] = (nk_ushort)rgn.x;
-    i->region[1] = (nk_ushort)rgn.y;
-    i->region[2] = (nk_ushort)rgn.w;
-    i->region[3] = (nk_ushort)rgn.h;
-    s.l = l; s.t = t; s.r = r; s.b = b;
-    return s;
-}
-NK_API struct nk_nine_slice
-nk_sub9slice_id(int id, nk_ushort w, nk_ushort h, struct nk_rect rgn, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
-{
-    struct nk_nine_slice s;
-    struct nk_image *i = &s.img;
-    nk_zero(&s, sizeof(s));
-    i->handle.id = id;
-    i->w = w; i->h = h;
-    i->region[0] = (nk_ushort)rgn.x;
-    i->region[1] = (nk_ushort)rgn.y;
-    i->region[2] = (nk_ushort)rgn.w;
-    i->region[3] = (nk_ushort)rgn.h;
-    s.l = l; s.t = t; s.r = r; s.b = b;
-    return s;
-}
-NK_API struct nk_nine_slice
-nk_sub9slice_handle(nk_handle handle, nk_ushort w, nk_ushort h, struct nk_rect rgn, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
-{
-    struct nk_nine_slice s;
-    struct nk_image *i = &s.img;
-    nk_zero(&s, sizeof(s));
-    i->handle = handle;
-    i->w = w; i->h = h;
-    i->region[0] = (nk_ushort)rgn.x;
-    i->region[1] = (nk_ushort)rgn.y;
-    i->region[2] = (nk_ushort)rgn.w;
-    i->region[3] = (nk_ushort)rgn.h;
-    s.l = l; s.t = t; s.r = r; s.b = b;
-    return s;
-}
-NK_API struct nk_nine_slice
-nk_nine_slice_handle(nk_handle handle, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
-{
-    struct nk_nine_slice s;
-    struct nk_image *i = &s.img;
-    nk_zero(&s, sizeof(s));
-    i->handle = handle;
-    i->w = 0; i->h = 0;
-    i->region[0] = 0;
-    i->region[1] = 0;
-    i->region[2] = 0;
-    i->region[3] = 0;
-    s.l = l; s.t = t; s.r = r; s.b = b;
-    return s;
-}
-NK_API struct nk_nine_slice
-nk_nine_slice_ptr(void *ptr, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
-{
-    struct nk_nine_slice s;
-    struct nk_image *i = &s.img;
-    nk_zero(&s, sizeof(s));
-    NK_ASSERT(ptr);
-    i->handle.ptr = ptr;
-    i->w = 0; i->h = 0;
-    i->region[0] = 0;
-    i->region[1] = 0;
-    i->region[2] = 0;
-    i->region[3] = 0;
-    s.l = l; s.t = t; s.r = r; s.b = b;
-    return s;
-}
-NK_API struct nk_nine_slice
-nk_nine_slice_id(int id, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
-{
-    struct nk_nine_slice s;
-    struct nk_image *i = &s.img;
-    nk_zero(&s, sizeof(s));
-    i->handle.id = id;
-    i->w = 0; i->h = 0;
-    i->region[0] = 0;
-    i->region[1] = 0;
-    i->region[2] = 0;
-    i->region[3] = 0;
-    s.l = l; s.t = t; s.r = r; s.b = b;
-    return s;
-}
-NK_API int
-nk_nine_slice_is_sub9slice(const struct nk_nine_slice* slice)
-{
-    NK_ASSERT(slice);
-    return !(slice->img.w == 0 && slice->img.h == 0);
-}
-
-
-
-
-
 /* ==============================================================
  *
+/* ==============================================================
  *                          BUTTON
  *
  * ===============================================================*/
+
 NK_LIB void
 nk_draw_symbol(struct nk_command_buffer *out, enum nk_symbol_type type,
     struct nk_rect content, struct nk_color background, struct nk_color foreground,
@@ -29485,7 +29391,6 @@ nk_property(struct nk_context *ctx, const char *name, struct nk_property_variant
         win->property.name = hash;
         win->property.select_start = *select_begin;
         win->property.select_end = *select_end;
-        win->edit.active = nk_true;
         if (*state == NK_PROPERTY_DRAG) {
             ctx->input.mouse.grab = nk_true;
             ctx->input.mouse.grabbed = nk_true;
@@ -29501,7 +29406,6 @@ nk_property(struct nk_context *ctx, const char *name, struct nk_property_variant
         win->property.select_start = 0;
         win->property.select_end = 0;
         win->property.active = 0;
-        win->edit.active = nk_false;
     }
 }
 NK_API nk_bool
@@ -31042,6 +30946,8 @@ nk_tooltip_begin_offset(struct nk_context *ctx, float width, enum nk_tooltip_pos
 
     w = nk_iceilf(width);
     h = (int)NK_MAX(win->layout->row.min_height, ctx->style.font->height+2*ctx->style.window.padding.y);
+
+    /* Default origin is top left, plus user offset */
     x = nk_ifloorf(in->mouse.pos.x + 1) - (int)win->layout->clip.x + (int)offset.x;
     y = nk_ifloorf(in->mouse.pos.y + 1) - (int)win->layout->clip.y + (int)offset.y;
 
@@ -31174,6 +31080,7 @@ nk_tooltip_offset(struct nk_context *ctx, const char *text, enum nk_tooltip_pos 
     text_len = nk_strlen(text);
     text_width = style->font->width(style->font->userdata,
                     style->font->height, text, text_len);
+    /* outer bounds: nk_panel_begin subtracts popup padding and border */
     text_width += 2 * style->window.popup_padding.x;
     text_width += 2 * style->window.popup_border;
     text_height = (style->font->height + 2 * padding.y);

@@ -6,6 +6,7 @@
  *                          BUTTON
  *
  * ===============================================================*/
+
 NK_LIB void
 nk_draw_symbol(struct nk_command_buffer *out, enum nk_symbol_type type,
     struct nk_rect content, struct nk_color background, struct nk_color foreground,
